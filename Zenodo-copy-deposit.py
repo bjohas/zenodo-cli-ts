@@ -1,13 +1,11 @@
-#!/usr/local/bin/python
-# https://developers.zenodo.org/#quickstart-upload
-# Written with input from Zenodo help desk!
+# Read this first https://developers.zenodo.org/#quickstart-upload
 
 import requests
 import sys
 import re
 import webbrowser
 
-params = {'access_token': 'REPLACE'}
+params = {'access_token': 'REPLACE-ME'}
 
 
 if len(sys.argv)<2:
@@ -23,7 +21,7 @@ ORIGINAL_DEPOSIT_ID = sys.argv[1]
 res = requests.get(
     'https://zenodo.org/api/deposit/depositions/{}'.format(ORIGINAL_DEPOSIT_ID),
     params=params)
-if res.status_code != 201:
+if res.status_code != 200:
     sys.exit('Error in getting ORIGINAL_DEPOSIT')
     
 metadata = res.json()['metadata']
@@ -40,10 +38,10 @@ for journal_filepath in JOURNAL_FILES:
     # Creating record metadata
     print('\tCreating record.')
     res = requests.post(
-        'https://sandbox.zenodo.org/api/deposit/depositions',
+        'https://zenodo.org/api/deposit/depositions',
         json={'metadata': metadata}, params=params)
     if res.status_code != 201:
-        sys.exit('Error in creating new record.')
+        sys.exit('Error in creating new record. '+format(res.status_code))
     response_data = res.json()
     # Print the URL of the deposit
     deposit_url = response_data['links']['html']
@@ -56,7 +54,7 @@ for journal_filepath in JOURNAL_FILES:
     # Upload file.
     with open(journal_filepath, 'rb') as fp:
         res = requests.put(bucket_url + '/' + replaced, data=fp, params=params)
-    if res.status_code != 201:
+    if res.status_code != 200:
         sys.exit('Error in creating file upload.')
     # notify user
     print('\tUpload successful.')
