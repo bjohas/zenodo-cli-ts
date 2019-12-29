@@ -47,6 +47,20 @@ def fileUpload(bucket_url, journal_filepath):
     print('\tNew deposit for {0} created; bucket_url {1}'.format(journal_filepath, bucket_url))
     webbrowser.open_new_tab(deposit_url)
 
+def newVersion(ORIGINAL_DEPOSIT_ID):
+    print('\tCreating new version of record '+ORIGINAL_DEPOSIT_ID)
+    res = requests.post(
+        'https://zenodo.org/api/deposit/depositions/'+ORIGINAL_DEPOSIT_ID+'/actions/newversion',
+        params=params)
+    if res.status_code != 202:
+        sys.exit('Error in creating new version of record. '+format(res.status_code))
+    response_data = res.json()
+    # Print the URL of the deposit
+    deposit_url = response_data['links']['latest_draft']
+    print('\tNew deposit created at {0}'.format(deposit_url))
+    # open deposit url so that the user can edit.
+    webbrowser.open_new_tab(deposit_url)
+    return response_data
 
 if len(sys.argv)<2:
     print("Usage: zenodo-cli <action> ... ")
@@ -54,6 +68,7 @@ if len(sys.argv)<2:
     print("       zenodo-cli create file1.json [file2.json [file3.json ...]]")
     print("       zenodo-cli duplicate original_deposit_id [title]")
     print("       zenodo-cli copy original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
+    print("       zenodo-cli newversion original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
     sys.exit('ERROR: Too few arguments.');
 
 action = sys.argv[1]
@@ -123,3 +138,7 @@ if action == "copy":
         bucket_url = response_data['links']['bucket']
 
         fileUpload(bucket_url, journal_filepath)
+
+if action == "newversion":
+    # Arguments: ORIGINAL_DEPOSIT_ID FILE1 FILE2
+    # Create a new version of the record and attach FILE1, FILE2, ...
