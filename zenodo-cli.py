@@ -59,11 +59,13 @@ if len(sys.argv)<2:
 action = sys.argv[1]
 
 if action == "get":
+    # Get and print deposit metadata from deposit id provided as arguments.
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     metadata = getData(ORIGINAL_DEPOSIT_ID)
     print(metadata)
 
 if action == "create":
+    # Create new deposits from metadata files (json) provided as arguments.
     JSON_FILES = sys.argv[2:len(sys.argv)]
 
     metadata = getData(ORIGINAL_DEPOSIT_ID)
@@ -71,7 +73,7 @@ if action == "create":
     # Do not allocate a DOI
     del metadata['prereserve_doi']
 
-    # Create new deposits based on the original metadata
+    # Create new deposits based on the provided metadata
     for json_filepath in JSON_FILES:
         print('Processing: '+json_filepath)
         replaced = re.sub('^.*\/', '', json_filepath)
@@ -83,6 +85,8 @@ if action == "create":
 
     
 if action == "duplicate":
+    # Arguments: ORIGINAL_DEPOSIT_ID STRING_TITLE
+    # Create a new record with the metadata of the record ORIGINAL_DEPOSIT_ID, but with the title replaced by STRING_TITLE.
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     TITLES = sys.argv[3:len(sys.argv)]
     metadata = getData(ORIGINAL_DEPOSIT_ID)
@@ -96,6 +100,8 @@ if action == "duplicate":
     response_data = createRecord(metadata)
     
 if action == "copy":
+    # Arguments: ORIGINAL_DEPOSIT_ID FILE1 FILE2
+    # Create a new record with the metadata of the record ORIGINAL_DEPOSIT_ID, and attach FILE1. Repeat for FILE2.
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     # Modify the list accordingly...
     JOURNAL_FILES = sys.argv[3:len(sys.argv)]
