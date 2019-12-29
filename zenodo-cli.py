@@ -5,7 +5,7 @@ import sys
 import re
 import webbrowser
 
-params = {'access_token': '7VsAeB7R1Sw3EYMWZKlmbEfygkKJkJ0sAL41DdhECkKIkAoe1magzeH2B9D6'}
+params = {'access_token': 'YOUR_ACCESS_TOKEN'}
 
 def getData(ORIGINAL_DEPOSIT_ID):
     # Fetch the original deposit metadata
