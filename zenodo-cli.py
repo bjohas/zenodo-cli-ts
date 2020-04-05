@@ -7,6 +7,7 @@ import sys
 import re
 import webbrowser
 import json
+import argparse
 
 config = json.load(open('./.config.json'))
 
@@ -23,6 +24,12 @@ def getData(ORIGINAL_DEPOSIT_ID):
         sys.exit('Error in getting ORIGINAL_DEPOSIT')
     metadata = res.json()['metadata']
     return metadata
+
+
+def saveIdsToJson(args):
+    for id in args.id:
+        with open('{}.json'.format(id), 'w') as f:
+            json.dump(getData(id), f)
 
 
 def createRecord(metadata):
@@ -58,6 +65,15 @@ def fileUpload(bucket_url, journal_filepath):
     webbrowser.open_new_tab(deposit_url)
 
 
+parser = argparse.ArgumentParser(description='Zenodo command line utility')
+subparsers = parser.add_subparsers(help='sub-command help')
+
+parser_get = subparsers.add_parser(
+    'get', help='The get command gets the ids listed, and writes these out to id1.json, id2.json etc. The id can be provided as a number, as a deposit URL or record URL')
+parser_get.add_argument('id', nargs='*')
+parser_get.set_defaults(func=saveIdsToJson)
+
+
 if len(sys.argv) < 2:
     print("Usage: zenodo-cli <action> ... ")
     print("       zenodo-cli get deposit_id")
@@ -69,20 +85,26 @@ if len(sys.argv) < 2:
     print("       zenodo-cli adapt original_deposit_id title date file1.pdf")
     sys.exit('ERROR: Too few arguments.')
 
+args = parser.parse_args()
+args.func(args)
 action = sys.argv[1]
 
+'''
 if action == "get":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     metadata = getData(ORIGINAL_DEPOSIT_ID)
     print(metadata)
+'''
 
 if action == "create":
     JSON_FILES = sys.argv[2:len(sys.argv)]
 
+    '''
     metadata = getData(ORIGINAL_DEPOSIT_ID)
     del metadata['doi']
     # Do not allocate a DOI
     del metadata['prereserve_doi']
+    '''
 
     # Create new deposits based on the original metadata
     for json_filepath in JSON_FILES:
