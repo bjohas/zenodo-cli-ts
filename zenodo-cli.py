@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 # Read this first https://developers.zenodo.org/#quickstart-upload
 # https://github.com/bjohas/Zenodo-tools
 
@@ -6,18 +6,24 @@ import requests
 import sys
 import re
 import webbrowser
+import json
 
-params = {'access_token': 'YOUR_ACCESS_TOKEN'}
+config = json.load(open('./.config.json'))
+
+params = {'access_token': config.get('accessToken')}
+
 
 def getData(ORIGINAL_DEPOSIT_ID):
     # Fetch the original deposit metadata
     res = requests.get(
-        'https://zenodo.org/api/deposit/depositions/{}'.format(ORIGINAL_DEPOSIT_ID),
+        'https://zenodo.org/api/deposit/depositions/{}'.format(
+            ORIGINAL_DEPOSIT_ID),
         params=params)
     if res.status_code != 200:
-        sys.exit('Error in getting ORIGINAL_DEPOSIT')        
+        sys.exit('Error in getting ORIGINAL_DEPOSIT')
     metadata = res.json()['metadata']
     return metadata
+
 
 def createRecord(metadata):
     # Creating record metadata
@@ -35,8 +41,9 @@ def createRecord(metadata):
     webbrowser.open_new_tab(deposit_url)
     return response_data
 
+
 def fileUpload(bucket_url, journal_filepath):
-    # File upload    
+    # File upload
     print('\tUploading file.')
     # Upload file.
     with open(journal_filepath, 'rb') as fp:
@@ -46,19 +53,21 @@ def fileUpload(bucket_url, journal_filepath):
     # notify user
     print('\tUpload successful.')
     # open deposit url so that the user can edit.
-    print('\tNew deposit for {0} created; bucket_url {1}'.format(journal_filepath, bucket_url))
+    print('\tNew deposit for {0} created; bucket_url {1}'.format(
+        journal_filepath, bucket_url))
     webbrowser.open_new_tab(deposit_url)
 
 
-if len(sys.argv)<2:
+if len(sys.argv) < 2:
     print("Usage: zenodo-cli <action> ... ")
     print("       zenodo-cli get deposit_id")
     print("       zenodo-cli create file1.json [file2.json [file3.json ...]]")
     print("       zenodo-cli duplicate original_deposit_id [title]")
     print("       zenodo-cli upload bucketurl file.pdf")
-    print("       zenodo-cli copy original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
+    print(
+        "       zenodo-cli copy original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
     print("       zenodo-cli adapt original_deposit_id title date file1.pdf")
-    sys.exit('ERROR: Too few arguments.');
+    sys.exit('ERROR: Too few arguments.')
 
 action = sys.argv[1]
 
@@ -80,12 +89,12 @@ if action == "create":
         print('Processing: '+json_filepath)
         replaced = re.sub('^.*\/', '', json_filepath)
         print('\tfilename: '+replaced)
-        file = open(json_filepath,mode='r')
+        file = open(json_filepath, mode='r')
         metadata = file.read()
         file.close()
         response_data = createRecord(metadata)
 
-    
+
 if action == "duplicate":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     TITLES = sys.argv[3:len(sys.argv)]
@@ -96,14 +105,14 @@ if action == "duplicate":
     # This needs to be fixed to allow multiple titles to create multiple records
     if TITLES:
         metadata['title'] = TITLES[0]
-    
+
     response_data = createRecord(metadata)
 
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
     deposit_url = response_data['links']['html']
     print('---')
-    print('Title: '+ metadata['title'])
+    print('Title: ' + metadata['title'])
     print('Deposit: '+deposit_url)
     print('Bucket: '+bucket_url)
 
@@ -112,7 +121,7 @@ if action == "upload":
     journal_filepath = sys.argv[3]
     replaced = re.sub('^.*\/', '', journal_filepath)
     fileUpload(bucket_url, journal_filepath)
-       
+
 if action == "copy":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     # Modify the list accordingly...
@@ -157,10 +166,10 @@ if action == "adapt":
     print('Processing: '+journal_filepath)
     replaced = re.sub('^.*\/', '', journal_filepath)
     print('\tfilename: '+replaced)
-    
+
     response_data = createRecord(metadata)
-    
+
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
-    
+
     fileUpload(bucket_url, journal_filepath)
