@@ -27,7 +27,9 @@ def getData(ORIGINAL_DEPOSIT_ID):
 
 
 def saveIdsToJson(args):
-    for id in args.id:
+    ids = [id.split('/')[-1]
+           for id in args.id if id.split('/')[-1].isnumeric()]
+    for id in ids:
         with open('{}.json'.format(id), 'w') as f:
             json.dump(getData(id), f)
 
