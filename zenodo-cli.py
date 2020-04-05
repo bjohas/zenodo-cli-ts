@@ -13,17 +13,32 @@ config = json.load(open('./.config.json'))
 
 params = {'access_token': config.get('accessToken')}
 
+ZENODO_API_URL = 'https://zenodo.org/api/deposit/depositions/'
 
-def getData(ORIGINAL_DEPOSIT_ID):
+
+def publishDeposition(id):
+    res = requests.post(
+        '{}{}/actions/publish'.format(ZENODO_API_URL, id), params=params)
+    if res.status_code != 200:
+        print('Error in publshing deposition {}: {}'.format(
+            id, json.loads(res.content)))
+    else:
+        print('Deposition {} successfully published.'.format(id))
+
+
+def getData(id):
     # Fetch the original deposit metadata
     res = requests.get(
-        'https://zenodo.org/api/deposit/depositions/{}'.format(
-            ORIGINAL_DEPOSIT_ID),
+        'https://zenodo.org/api/deposit/depositions/{}'.format(id),
         params=params)
     if res.status_code != 200:
         sys.exit('Error in getting ORIGINAL_DEPOSIT')
-    metadata = res.json()['metadata']
-    return metadata
+    return res.json()
+
+
+def getMetadata(ORIGINAL_DEPOSIT_ID):
+    # Fetch the original deposit metadata
+    return getData(ORIGINAL_DEPOSIT_ID)['metadata']
 
 
 def saveIdsToJson(args):
@@ -31,7 +46,12 @@ def saveIdsToJson(args):
            for id in args.id if id.split('/')[-1].isnumeric()]
     for id in ids:
         with open('{}.json'.format(id), 'w') as f:
-            json.dump(getData(id), f)
+            data = getData(id)
+            json.dump(data['metadata'], f)
+        if args.publish:
+            publishDeposition(id)
+        if args.open:
+            webbrowser.open_new_tab(data['links']['html'])
 
 
 def createRecord(metadata):
@@ -73,6 +93,8 @@ subparsers = parser.add_subparsers(help='sub-command help')
 parser_get = subparsers.add_parser(
     'get', help='The get command gets the ids listed, and writes these out to id1.json, id2.json etc. The id can be provided as a number, as a deposit URL or record URL')
 parser_get.add_argument('id', nargs='*')
+parser_get.add_argument('--publish', action='store_true', default=False)
+parser_get.add_argument('--open', action='store_true', default=False)
 parser_get.set_defaults(func=saveIdsToJson)
 
 
@@ -94,7 +116,7 @@ action = sys.argv[1]
 '''
 if action == "get":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
-    metadata = getData(ORIGINAL_DEPOSIT_ID)
+    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
     print(metadata)
 '''
 
@@ -102,7 +124,7 @@ if action == "create":
     JSON_FILES = sys.argv[2:len(sys.argv)]
 
     '''
-    metadata = getData(ORIGINAL_DEPOSIT_ID)
+    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
     del metadata['doi']
     # Do not allocate a DOI
     del metadata['prereserve_doi']
@@ -122,7 +144,7 @@ if action == "create":
 if action == "duplicate":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
     TITLES = sys.argv[3:len(sys.argv)]
-    metadata = getData(ORIGINAL_DEPOSIT_ID)
+    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
     del metadata['doi']  # remove the old DOI
     metadata['prereserve_doi'] = True
 
@@ -151,7 +173,7 @@ if action == "copy":
     # Modify the list accordingly...
     JOURNAL_FILES = sys.argv[3:len(sys.argv)]
 
-    metadata = getData(ORIGINAL_DEPOSIT_ID)
+    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
     del metadata['doi']  # remove the old DOI
     del metadata['prereserve_doi']
 
@@ -177,7 +199,7 @@ if action == "adapt":
     DATE = sys.argv[4]
     journal_filepath = sys.argv[5]
 
-    metadata = getData(ORIGINAL_DEPOSIT_ID)
+    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
 
     del metadata['doi']  # remove the old DOI
     del metadata['prereserve_doi']
