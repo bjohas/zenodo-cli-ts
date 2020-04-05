@@ -41,9 +41,21 @@ def getMetadata(ORIGINAL_DEPOSIT_ID):
     return getData(ORIGINAL_DEPOSIT_ID)['metadata']
 
 
+def parseIds(genericIds):
+    ids = []
+    for id in genericIds:
+        slash_split = id.split('/')[-1]
+        if slash_split.isnumeric():
+            ids.append(slash_split)
+        else:
+            dot_split = id.split('.')[-1]
+            if dot_split.isnumeric():
+                ids.append(dot_split)
+    return ids
+
+
 def saveIdsToJson(args):
-    ids = [id.split('/')[-1]
-           for id in args.id if id.split('/')[-1].isnumeric()]
+    ids = parseIds(args.id)
     for id in ids:
         with open('{}.json'.format(id), 'w') as f:
             data = getData(id)
