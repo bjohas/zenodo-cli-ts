@@ -232,6 +232,11 @@ parser_update.add_argument('--open', action='store_true', default=False)
 parser_update.set_defaults(func=update)
 
 args = parser.parse_args()
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
 args.func(args)
 action = sys.argv[1]
 
