@@ -79,12 +79,21 @@ def createRecord(metadata):
     res = requests.post(ZENODO_API_URL, json={
                         'metadata': metadata}, params=params)
     if res.status_code != 201:
-        sys.exit('Error in creating new record. '+format(res.status_code))
+        sys.exit('Error in creating new record: {}'.format(
+            json.loads(res.content)))
     response_data = res.json()
-    # Print the URL of the deposit
-    deposit_url = response_data['links']['html']
-    print('\tNew deposit created at {0}'.format(deposit_url))
-    # open deposit url so that the user can edit.
+    return response_data
+
+
+def updateRecord(metadata):
+    # Creating record metadata
+    print('\tUpdating record.')
+    res = requests.put(ZENODO_API_URL, json={
+        'metadata': metadata}, params=params)
+    if res.status_code != 200:
+        sys.exit('Error in updating record. {}'.format(
+            json.loads(res.content)))
+    response_data = res.json()
     return response_data
 
 
@@ -155,6 +164,35 @@ def upload(args):
         print('Unable to upload: id and bucketurl both not specified.')
 
 
+def update(args):
+    metadata = getMetadata(args.id[0])
+
+    # This needs to be fixed to allow multiple titles to create multiple records
+    if args.title:
+        metadata['title'] = args.title
+    if args.date:
+        metadata['publication_date'] = args.date
+    response_data = createRecord(metadata)
+
+    # Get bucket_url
+    bucket_url = response_data['links']['bucket']
+    deposit_url = response_data['links']['html']
+    print('---')
+    print('Title: ' + metadata['title'])
+    print('Deposit: ' + deposit_url)
+    print('Bucket: ' + bucket_url)
+
+    if args.files:
+        for filePath in args.files:
+            fileUpload(bucket_url, filePath)
+
+    if args.publish:
+        publishDeposition(response_data.id)
+
+    if args.open:
+        webbrowser.open_new_tab(deposit_url)
+
+
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -182,6 +220,17 @@ parser_upload.add_argument('files', nargs='*')
 parser_upload.add_argument('--publish', action='store_true', default=False)
 parser_upload.add_argument('--open', action='store_true', default=False)
 parser_upload.set_defaults(func=upload)
+
+parser_update = subparsers.add_parser(
+    'update', help='The update command updates the id provided, with the title / date and files provided.')
+parser_update.add_argument('id', nargs=1)
+parser_update.add_argument('--title', action='store')
+parser_update.add_argument('--date', action='store')
+parser_update.add_argument('--files', nargs='*')
+parser_update.add_argument('--publish', action='store_true', default=False)
+parser_update.add_argument('--open', action='store_true', default=False)
+parser_update.set_defaults(func=update)
+
 
 if len(sys.argv) < 2:
     print("Usage: zenodo-cli <action> ... ")
