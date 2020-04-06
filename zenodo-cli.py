@@ -200,6 +200,14 @@ def update(args):
         webbrowser.open_new_tab(deposit_url)
 
 
+def create(args):
+    # Create new deposits based on the original metadata
+    for json_filepath in args.files:
+        print('Processing: ' + json_filepath)
+        with open(json_filepath, mode='r') as f:
+            createRecord(f.read())
+
+
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -242,6 +250,14 @@ parser_update.add_argument('--open', action='store_true', default=False)
 parser_update.add_argument('--show', action='store_true', default=False)
 parser_update.set_defaults(func=update)
 
+parser_create = subparsers.add_parser(
+    'create', help='The create command creates new records based on the json files provided.')
+parser_create.add_argument('files', nargs='*')
+parser_create.add_argument('--publish', action='store_true', default=False)
+parser_create.add_argument('--open', action='store_true', default=False)
+parser_create.add_argument('--show', action='store_true', default=False)
+parser_create.set_defaults(func=create)
+
 args = parser.parse_args()
 
 if len(sys.argv) == 1:
@@ -250,27 +266,6 @@ if len(sys.argv) == 1:
 
 args.func(args)
 action = sys.argv[1]
-
-if action == "create":
-    JSON_FILES = sys.argv[2:len(sys.argv)]
-
-    '''
-    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
-    del metadata['doi']
-    # Do not allocate a DOI
-    del metadata['prereserve_doi']
-    '''
-
-    # Create new deposits based on the original metadata
-    for json_filepath in JSON_FILES:
-        print('Processing: '+json_filepath)
-        replaced = re.sub('^.*\/', '', json_filepath)
-        print('\tfilename: '+replaced)
-        file = open(json_filepath, mode='r')
-        metadata = file.read()
-        file.close()
-        response_data = createRecord(metadata)
-
 
 if action == "copy":
     ORIGINAL_DEPOSIT_ID = sys.argv[2]
