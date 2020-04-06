@@ -13,12 +13,15 @@ config = json.load(open('./.config.json'))
 
 params = {'access_token': config.get('accessToken')}
 
-ZENODO_API_URL = 'https://zenodo.org/api/deposit/depositions/'
+if config.get('env') == 'sandbox':
+    ZENODO_API_URL = 'https://sandbox.zenodo.org/api/deposit/depositions'
+else:
+    ZENODO_API_URL = 'https://zenodo.org/api/deposit/depositions'
 
 
 def publishDeposition(id):
     res = requests.post(
-        '{}{}/actions/publish'.format(ZENODO_API_URL, id), params=params)
+        '{}/{}/actions/publish'.format(ZENODO_API_URL, id), params=params)
     if res.status_code != 200:
         print('Error in publshing deposition {}: {}'.format(
             id, json.loads(res.content)))
@@ -29,16 +32,16 @@ def publishDeposition(id):
 def getData(id):
     # Fetch the original deposit metadata
     res = requests.get(
-        'https://zenodo.org/api/deposit/depositions/{}'.format(id),
+        '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
     if res.status_code != 200:
-        sys.exit('Error in getting ORIGINAL_DEPOSIT')
+        sys.exit('Error in getting data: {}'.format(json.loads(res.content)))
     return res.json()
 
 
-def getMetadata(ORIGINAL_DEPOSIT_ID):
+def getMetadata(id):
     # Fetch the original deposit metadata
-    return getData(ORIGINAL_DEPOSIT_ID)['metadata']
+    return getData(id)['metadata']
 
 
 def parseIds(genericIds):
@@ -69,9 +72,8 @@ def saveIdsToJson(args):
 def createRecord(metadata):
     # Creating record metadata
     print('\tCreating record.')
-    res = requests.post(
-        'https://zenodo.org/api/deposit/depositions',
-        json={'metadata': metadata}, params=params)
+    res = requests.post(ZENODO_API_URL, json={
+                        'metadata': metadata}, params=params)
     if res.status_code != 201:
         sys.exit('Error in creating new record. '+format(res.status_code))
     response_data = res.json()
@@ -79,7 +81,6 @@ def createRecord(metadata):
     deposit_url = response_data['links']['html']
     print('\tNew deposit created at {0}'.format(deposit_url))
     # open deposit url so that the user can edit.
-    webbrowser.open_new_tab(deposit_url)
     return response_data
 
 
@@ -88,6 +89,7 @@ def fileUpload(bucket_url, journal_filepath):
     print('\tUploading file.')
     # Upload file.
     with open(journal_filepath, 'rb') as fp:
+        replaced = re.sub('^.*\/', '', journal_filepath)
         res = requests.put(bucket_url + '/' + replaced, data=fp, params=params)
     if res.status_code != 200:
         sys.exit('Error in creating file upload.')
@@ -96,7 +98,37 @@ def fileUpload(bucket_url, journal_filepath):
     # open deposit url so that the user can edit.
     print('\tNew deposit for {0} created; bucket_url {1}'.format(
         journal_filepath, bucket_url))
-    webbrowser.open_new_tab(deposit_url)
+
+
+def duplicate(args):
+    metadata = getMetadata(args.id[0])
+    del metadata['doi']  # remove the old DOI
+    metadata['prereserve_doi'] = True
+
+    # This needs to be fixed to allow multiple titles to create multiple records
+    if args.title:
+        metadata['title'] = args.title
+    if args.date:
+        metadata['publication_date'] = args.date
+    response_data = createRecord(metadata)
+
+    # Get bucket_url
+    bucket_url = response_data['links']['bucket']
+    deposit_url = response_data['links']['html']
+    print('---')
+    print('Title: ' + metadata['title'])
+    print('Deposit: ' + deposit_url)
+    print('Bucket: ' + bucket_url)
+
+    if args.files:
+        for filePath in args.files:
+            fileUpload(bucket_url, filePath)
+
+    if args.publish:
+        publishDeposition(response_data.id)
+
+    if args.open:
+        webbrowser.open_new_tab(deposit_url)
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
@@ -109,6 +141,15 @@ parser_get.add_argument('--publish', action='store_true', default=False)
 parser_get.add_argument('--open', action='store_true', default=False)
 parser_get.set_defaults(func=saveIdsToJson)
 
+parser_duplicate = subparsers.add_parser(
+    'duplicate', help='The duplicate command duplicates the id to a new id, optionally providing a title and date and file(s).')
+parser_duplicate.add_argument('id', nargs=1)
+parser_duplicate.add_argument('--title', action='store')
+parser_duplicate.add_argument('--date', action='store')
+parser_duplicate.add_argument('--files', nargs='*')
+parser_duplicate.add_argument('--publish', action='store_true', default=False)
+parser_duplicate.add_argument('--open', action='store_true', default=False)
+parser_duplicate.set_defaults(func=duplicate)
 
 if len(sys.argv) < 2:
     print("Usage: zenodo-cli <action> ... ")
@@ -124,13 +165,6 @@ if len(sys.argv) < 2:
 args = parser.parse_args()
 args.func(args)
 action = sys.argv[1]
-
-'''
-if action == "get":
-    ORIGINAL_DEPOSIT_ID = sys.argv[2]
-    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
-    print(metadata)
-'''
 
 if action == "create":
     JSON_FILES = sys.argv[2:len(sys.argv)]
@@ -152,27 +186,6 @@ if action == "create":
         file.close()
         response_data = createRecord(metadata)
 
-
-if action == "duplicate":
-    ORIGINAL_DEPOSIT_ID = sys.argv[2]
-    TITLES = sys.argv[3:len(sys.argv)]
-    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
-    del metadata['doi']  # remove the old DOI
-    metadata['prereserve_doi'] = True
-
-    # This needs to be fixed to allow multiple titles to create multiple records
-    if TITLES:
-        metadata['title'] = TITLES[0]
-
-    response_data = createRecord(metadata)
-
-    # Get bucket_url
-    bucket_url = response_data['links']['bucket']
-    deposit_url = response_data['links']['html']
-    print('---')
-    print('Title: ' + metadata['title'])
-    print('Deposit: '+deposit_url)
-    print('Bucket: '+bucket_url)
 
 if action == "upload":
     bucket_url = sys.argv[2]
