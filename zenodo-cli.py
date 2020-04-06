@@ -52,6 +52,16 @@ def getData(id):
     return res.json()
 
 
+def showDeposition(id):
+    id = parseId(id)
+    info = getData(id)
+    print('Id: {}'.format(id))
+    print('BucketURL: {}'.format(info['links']['bucket']))
+    print('Title: {}'.format(info['title']))
+    print('Published: {}'.format('yes' if info['submitted'] else 'no'))
+    print('\n')
+
+
 def getMetadata(id):
     # Fetch the original deposit metadata
     return getData(id)['metadata']
@@ -69,6 +79,8 @@ def saveIdsToJson(args):
             json.dump(data['metadata'], f)
         if args.publish:
             publishDeposition(id)
+        if args.show:
+            showDeposition(id)
         if args.open:
             webbrowser.open_new_tab(data['links']['html'])
 
@@ -109,9 +121,6 @@ def fileUpload(bucket_url, journal_filepath):
             json.loads(res.content)))
     # notify user
     print('\tUpload successful.')
-    # open deposit url so that the user can edit.
-    print('\tNew deposit for {0} created; bucket_url {1}'.format(
-        journal_filepath, bucket_url))
 
 
 def duplicate(args):
@@ -129,10 +138,6 @@ def duplicate(args):
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
     deposit_url = response_data['links']['html']
-    print('---')
-    print('Title: ' + metadata['title'])
-    print('Deposit: ' + deposit_url)
-    print('Bucket: ' + bucket_url)
 
     if args.files:
         for filePath in args.files:
@@ -140,7 +145,8 @@ def duplicate(args):
 
     if args.publish:
         publishDeposition(response_data.id)
-
+    if args.show:
+        showDeposition(response_data.id)
     if args.open:
         webbrowser.open_new_tab(deposit_url)
 
@@ -158,6 +164,8 @@ def upload(args):
             fileUpload(bucket_url, filePath)
         if args.publish and args.id:
             publishDeposition(args.id)
+        if args.show and args.id:
+            showDeposition(args.id)
         if args.open and deposit_url:
             webbrowser.open_new_tab(deposit_url)
     else:
@@ -177,10 +185,6 @@ def update(args):
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
     deposit_url = response_data['links']['html']
-    print('---')
-    print('Title: ' + metadata['title'])
-    print('Deposit: ' + deposit_url)
-    print('Bucket: ' + bucket_url)
 
     if args.files:
         for filePath in args.files:
@@ -188,6 +192,9 @@ def update(args):
 
     if args.publish:
         publishDeposition(response_data.id)
+
+    if args.show:
+        showDeposition(response_data.id)
 
     if args.open:
         webbrowser.open_new_tab(deposit_url)
@@ -201,6 +208,7 @@ parser_get = subparsers.add_parser(
 parser_get.add_argument('id', nargs='*')
 parser_get.add_argument('--publish', action='store_true', default=False)
 parser_get.add_argument('--open', action='store_true', default=False)
+parser_get.add_argument('--show', action='store_true', default=False)
 parser_get.set_defaults(func=saveIdsToJson)
 
 parser_duplicate = subparsers.add_parser(
@@ -211,6 +219,7 @@ parser_duplicate.add_argument('--date', action='store')
 parser_duplicate.add_argument('--files', nargs='*')
 parser_duplicate.add_argument('--publish', action='store_true', default=False)
 parser_duplicate.add_argument('--open', action='store_true', default=False)
+parser_duplicate.add_argument('--show', action='store_true', default=False)
 parser_duplicate.set_defaults(func=duplicate)
 
 parser_upload = subparsers.add_parser('upload')
@@ -219,6 +228,7 @@ parser_upload.add_argument('--bucketurl', action='store')
 parser_upload.add_argument('files', nargs='*')
 parser_upload.add_argument('--publish', action='store_true', default=False)
 parser_upload.add_argument('--open', action='store_true', default=False)
+parser_upload.add_argument('--show', action='store_true', default=False)
 parser_upload.set_defaults(func=upload)
 
 parser_update = subparsers.add_parser(
@@ -229,6 +239,7 @@ parser_update.add_argument('--date', action='store')
 parser_update.add_argument('--files', nargs='*')
 parser_update.add_argument('--publish', action='store_true', default=False)
 parser_update.add_argument('--open', action='store_true', default=False)
+parser_update.add_argument('--show', action='store_true', default=False)
 parser_update.set_defaults(func=update)
 
 args = parser.parse_args()
