@@ -159,7 +159,6 @@ if len(sys.argv) < 2:
     print("       zenodo-cli upload bucketurl file.pdf")
     print(
         "       zenodo-cli copy original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
-    print("       zenodo-cli adapt original_deposit_id title date file1.pdf")
     sys.exit('ERROR: Too few arguments.')
 
 args = parser.parse_args()
@@ -215,32 +214,3 @@ if action == "copy":
         bucket_url = response_data['links']['bucket']
 
         fileUpload(bucket_url, journal_filepath)
-
-#     print("       zenodo-cli adapt original_deposit_id title date file1.pdf")
-
-if action == "adapt":
-    ORIGINAL_DEPOSIT_ID = sys.argv[2]
-    title = sys.argv[3]
-    DATE = sys.argv[4]
-    journal_filepath = sys.argv[5]
-
-    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
-
-    del metadata['doi']  # remove the old DOI
-    del metadata['prereserve_doi']
-
-    metadata['title'] = title
-    metadata['publication_date'] = DATE
-    metadata['description'] = '<p>For more information please visit https://opendeved.net.</p>'
-
-    # Notify user of file to be uploaded.
-    print('Processing: '+journal_filepath)
-    replaced = re.sub('^.*\/', '', journal_filepath)
-    print('\tfilename: '+replaced)
-
-    response_data = createRecord(metadata)
-
-    # Get bucket_url
-    bucket_url = response_data['links']['bucket']
-
-    fileUpload(bucket_url, journal_filepath)
