@@ -231,17 +231,6 @@ parser_update.add_argument('--publish', action='store_true', default=False)
 parser_update.add_argument('--open', action='store_true', default=False)
 parser_update.set_defaults(func=update)
 
-
-if len(sys.argv) < 2:
-    print("Usage: zenodo-cli <action> ... ")
-    print("       zenodo-cli get deposit_id")
-    print("       zenodo-cli create file1.json [file2.json [file3.json ...]]")
-    print("       zenodo-cli duplicate original_deposit_id [title]")
-    print("       zenodo-cli upload bucketurl file.pdf")
-    print(
-        "       zenodo-cli copy original_deposit_id file1.pdf [file2.pdf [file3.pdf ...]]")
-    sys.exit('ERROR: Too few arguments.')
-
 args = parser.parse_args()
 args.func(args)
 action = sys.argv[1]
