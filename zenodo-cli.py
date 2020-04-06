@@ -208,6 +208,22 @@ def create(args):
             createRecord(f.read())
 
 
+def copy(args):
+    metadata = getMetadata(args.id)
+    del metadata['doi']  # remove the old DOI
+    del metadata['prereserve_doi']
+
+    # Create new deposits based on the original metadata
+    for journal_filepath in args.files:
+        # Notify user of file to be uploaded.
+        print('Processing: '+journal_filepath)
+        response_data = createRecord(metadata)
+
+        # Get bucket_url
+        bucket_url = response_data['links']['bucket']
+        fileUpload(bucket_url, journal_filepath)
+
+
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -258,6 +274,14 @@ parser_create.add_argument('--open', action='store_true', default=False)
 parser_create.add_argument('--show', action='store_true', default=False)
 parser_create.set_defaults(func=create)
 
+parser_copy = subparsers.add_parser('multicopy')
+parser_copy.add_argument('id', nargs=1)
+parser_copy.add_argument('files', nargs='*')
+parser_copy.add_argument('--publish', action='store_true', default=False)
+parser_copy.add_argument('--open', action='store_true', default=False)
+parser_copy.add_argument('--show', action='store_true', default=False)
+parser_copy.set_defaults(func=copy)
+
 args = parser.parse_args()
 
 if len(sys.argv) == 1:
@@ -265,27 +289,3 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args.func(args)
-action = sys.argv[1]
-
-if action == "copy":
-    ORIGINAL_DEPOSIT_ID = sys.argv[2]
-    # Modify the list accordingly...
-    JOURNAL_FILES = sys.argv[3:len(sys.argv)]
-
-    metadata = getMetadata(ORIGINAL_DEPOSIT_ID)
-    del metadata['doi']  # remove the old DOI
-    del metadata['prereserve_doi']
-
-    # Create new deposits based on the original metadata
-    for journal_filepath in JOURNAL_FILES:
-        # Notify user of file to be uploaded.
-        print('Processing: '+journal_filepath)
-        replaced = re.sub('^.*\/', '', journal_filepath)
-        print('\tfilename: '+replaced)
-
-        response_data = createRecord(metadata)
-
-        # Get bucket_url
-        bucket_url = response_data['links']['bucket']
-
-        fileUpload(bucket_url, journal_filepath)
