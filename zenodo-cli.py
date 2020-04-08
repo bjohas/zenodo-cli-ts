@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Read this first https://developers.zenodo.org/#quickstart-upload
 # https://github.com/bjohas/Zenodo-tools
 
