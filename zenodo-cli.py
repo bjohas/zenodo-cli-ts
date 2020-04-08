@@ -27,7 +27,7 @@ def loadConfig(configFile):
 
 
 def parseId(id):
-    slash_split = id.split('/')[-1]
+    slash_split = str(id).split('/')[-1]
     if slash_split.isnumeric():
         id = slash_split
     else:
@@ -151,9 +151,9 @@ def duplicate(args):
             fileUpload(bucket_url, filePath)
 
     if args.publish:
-        publishDeposition(response_data.id)
+        publishDeposition(response_data['id'])
     if args.show:
-        showDeposition(response_data.id)
+        showDeposition(response_data['id'])
     if args.open:
         webbrowser.open_new_tab(deposit_url)
 
@@ -198,10 +198,10 @@ def update(args):
             fileUpload(bucket_url, filePath)
 
     if args.publish:
-        publishDeposition(response_data.id)
+        publishDeposition(response_data['id'])
 
     if args.show:
-        showDeposition(response_data.id)
+        showDeposition(response_data['id'])
 
     if args.open:
         webbrowser.open_new_tab(deposit_url)
@@ -212,7 +212,15 @@ def create(args):
     for json_filepath in args.files:
         print('Processing: ' + json_filepath)
         with open(json_filepath, mode='r') as f:
-            createRecord(f.read())
+            response_data = createRecord(json.loads(f.read()))
+        if args.publish:
+            publishDeposition(response_data['id'])
+
+        if args.show:
+            showDeposition(response_data['id'])
+
+        if args.open:
+            webbrowser.open_new_tab(response_data['links']['html'])
 
 
 def copy(args):
@@ -229,6 +237,14 @@ def copy(args):
         # Get bucket_url
         bucket_url = response_data['links']['bucket']
         fileUpload(bucket_url, journal_filepath)
+        if args.publish:
+            publishDeposition(response_data['id'])
+
+        if args.show:
+            showDeposition(response_data['id'])
+
+        if args.open:
+            webbrowser.open_new_tab(response_data['links']['html'])
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
