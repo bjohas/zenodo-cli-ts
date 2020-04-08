@@ -182,12 +182,11 @@ def upload(args):
 def update(args):
     metadata = getMetadata(args.id[0])
 
-    # This needs to be fixed to allow multiple titles to create multiple records
     if args.title:
         metadata['title'] = args.title
     if args.date:
         metadata['publication_date'] = args.date
-    response_data = createRecord(metadata)
+    response_data = updateRecord(metadata)
 
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
@@ -213,6 +212,7 @@ def create(args):
         print('Processing: ' + json_filepath)
         with open(json_filepath, mode='r') as f:
             response_data = createRecord(json.loads(f.read()))
+
         if args.publish:
             publishDeposition(response_data['id'])
 
