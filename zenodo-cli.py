@@ -9,14 +9,21 @@ import webbrowser
 import json
 import argparse
 
-config = json.load(open('./.config.json'))
 
-params = {'access_token': config.get('accessToken')}
+params = {}
+ZENODO_API_URL = ''
 
-if config.get('env') == 'sandbox':
-    ZENODO_API_URL = 'https://sandbox.zenodo.org/api/deposit/depositions'
-else:
-    ZENODO_API_URL = 'https://zenodo.org/api/deposit/depositions'
+
+def loadConfig(configFile):
+    global params
+    global ZENODO_API_URL
+    config = json.load(open(configFile))
+    params = {'access_token': config.get('accessToken')}
+
+    if config.get('env') == 'sandbox':
+        ZENODO_API_URL = 'https://sandbox.zenodo.org/api/deposit/depositions'
+    else:
+        ZENODO_API_URL = 'https://zenodo.org/api/deposit/depositions'
 
 
 def parseId(id):
@@ -225,6 +232,7 @@ def copy(args):
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
+parser.add_argument('--config', action='store', default='.config.json')
 subparsers = parser.add_subparsers(help='sub-command help')
 
 parser_get = subparsers.add_parser(
@@ -306,4 +314,5 @@ if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 
+loadConfig(args.config)
 args.func(args)
