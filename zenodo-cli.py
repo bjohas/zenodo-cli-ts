@@ -104,10 +104,11 @@ def createRecord(metadata):
     return response_data
 
 
-def updateRecord(metadata):
+def updateRecord(dep_id, metadata):
     # Creating record metadata
     print('\tUpdating record.')
-    res = requests.put(ZENODO_API_URL, json={
+    dep_id = parseId(dep_id)
+    res = requests.put(ZENODO_API_URL + '/' + dep_id, json={
         'metadata': metadata}, params=params)
     if res.status_code != 200:
         sys.exit('Error in updating record. {}'.format(
@@ -186,7 +187,7 @@ def update(args):
         metadata['title'] = args.title
     if args.date:
         metadata['publication_date'] = args.date
-    response_data = updateRecord(metadata)
+    response_data = updateRecord(args.id[0], metadata)
 
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
