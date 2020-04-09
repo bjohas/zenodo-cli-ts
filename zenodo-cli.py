@@ -187,6 +187,9 @@ def update(args):
         metadata['title'] = args.title
     if args.date:
         metadata['publication_date'] = args.date
+    if args.communities:
+        metadata['communities'] = [{'identifier': community}
+                                   for community in args.communities]
     response_data = updateRecord(args.id[0], metadata)
 
     # Get bucket_url
@@ -295,6 +298,7 @@ parser_update.add_argument('id', nargs=1)
 parser_update.add_argument('--title', action='store')
 parser_update.add_argument('--date', action='store')
 parser_update.add_argument('--files', nargs='*')
+parser_update.add_argument('--communities', nargs='*')
 parser_update.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_update.add_argument('--open', action='store_true',
