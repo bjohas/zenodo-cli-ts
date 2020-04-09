@@ -8,7 +8,7 @@ import re
 import webbrowser
 import json
 import argparse
-
+import pprint
 
 params = {}
 ZENODO_API_URL = ''
@@ -56,13 +56,17 @@ def getData(id):
         params=params)
     if res.status_code != 200:
         sys.exit('Error in getting data: {}'.format(json.loads(res.content)))
+
     return res.json()
 
 
 def showDeposition(id):
     id = parseId(id)
     info = getData(id)
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(info)
     print('Id: {}'.format(id))
+    print('ConceptRecId: {}'.format(info['conceptrecid']))
     print('BucketURL: {}'.format(info['links']['bucket']))
     print('Title: {}'.format(info['title']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
@@ -187,6 +191,8 @@ def update(args):
         metadata['title'] = args.title
     if args.date:
         metadata['publication_date'] = args.date
+    if args.description:
+        metadata['description'] = args.description
     response_data = updateRecord(args.id[0], metadata)
 
     # Get bucket_url
@@ -294,6 +300,7 @@ parser_update = subparsers.add_parser(
 parser_update.add_argument('id', nargs=1)
 parser_update.add_argument('--title', action='store')
 parser_update.add_argument('--date', action='store')
+parser_update.add_argument('--description', action='store')
 parser_update.add_argument('--files', nargs='*')
 parser_update.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
