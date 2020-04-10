@@ -55,7 +55,7 @@ def getData(id):
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
     if res.status_code != 200:
-        sys.exit('Error in getting data: {}'.format(json.loads(res.content)))
+        sys.oexit('Error in getting data: {}'.format(json.loads(res.content)))
 
     return res.json()
 
@@ -104,6 +104,18 @@ def createRecord(metadata):
     if res.status_code != 201:
         sys.exit('Error in creating new record: {}'.format(
             json.loads(res.content)))
+    response_data = res.json()
+    return response_data
+
+
+def editDeposit(dep_id):
+    dep_id = parseId(dep_id)
+    res = requests.post('{}/{}/actions/edit'.format(ZENODO_API_URL, dep_id), params=params)
+
+    if res.status_code != 201:
+        sys.exit('Error in making record editable. {}'.format(
+            json.loads(res.content)))
+
     response_data = res.json()
     return response_data
 
@@ -185,8 +197,21 @@ def upload(args):
 
 
 def update(args):
-    metadata = getMetadata(args.id[0])
+    data = getData(args.id[0])
 
+    #pp = pprint.PrettyPrinter(indent=4)
+    #pp.pprint(data)
+
+    metadata = data['metadata']
+    
+    # TODO
+    if data['submitted'] == True:
+        # if argument.edit == yes:
+        print('Making editable')
+        response = editDeposit(args.id[0])
+        # else:
+        # sys.exit("Deposit {} has been published already. To edit it, use --edit".format(args.id[0]))
+            
     if args.title:
         metadata['title'] = args.title
     if args.date:
@@ -196,7 +221,7 @@ def update(args):
     if args.communities:
         metadata['communities'] = [{'identifier': community}
                                    for community in args.communities]
-
+        
     response_data = updateRecord(args.id[0], metadata)
 
     # Get bucket_url
