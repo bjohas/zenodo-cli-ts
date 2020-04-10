@@ -110,7 +110,8 @@ def createRecord(metadata):
 
 def editDeposit(dep_id):
     dep_id = parseId(dep_id)
-    res = requests.post('{}/{}/actions/edit'.format(ZENODO_API_URL, dep_id), params=params)
+    res = requests.post(
+        '{}/{}/actions/edit'.format(ZENODO_API_URL, dep_id), params=params)
 
     if res.status_code != 201:
         sys.exit('Error in making record editable. {}'.format(
@@ -200,10 +201,10 @@ def update(args):
     data = getData(args.id[0])
 
     #pp = pprint.PrettyPrinter(indent=4)
-    #pp.pprint(data)
+    # pp.pprint(data)
 
     metadata = data['metadata']
-    
+
     # TODO
     if data['submitted'] == True:
         # if argument.edit == yes:
@@ -211,7 +212,7 @@ def update(args):
         response = editDeposit(args.id[0])
         # else:
         # sys.exit("Deposit {} has been published already. To edit it, use --edit".format(args.id[0]))
-            
+
     if args.title:
         metadata['title'] = args.title
     if args.date:
@@ -221,7 +222,7 @@ def update(args):
     if args.communities:
         metadata['communities'] = [{'identifier': community}
                                    for community in args.communities]
-        
+
     response_data = updateRecord(args.id[0], metadata)
 
     # Get bucket_url
@@ -281,6 +282,16 @@ def copy(args):
 
         if args.open:
             webbrowser.open_new_tab(response_data['links']['html'])
+
+
+def listDepositions(args):
+    res = requests.get(ZENODO_API_URL, params=params)
+    if res.status_code != 200:
+        sys.exit('Failed in listDepositions: {}'.format(
+            json.loads(res.content)))
+
+    for dep in json.loads(res.content):
+        showDeposition(dep['id'])
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
@@ -361,6 +372,9 @@ parser_copy.add_argument('--open', action='store_true',
 parser_copy.add_argument('--show', action='store_true',
                          help='Show the info of the deposition after executing the command.', default=False)
 parser_copy.set_defaults(func=copy)
+
+parser_list = subparsers.add_parser("list")
+parser_list.set_defaults(func=listDepositions)
 
 args = parser.parse_args()
 
