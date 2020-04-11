@@ -63,12 +63,14 @@ def getData(id):
 def showDeposition(id):
     id = parseId(id)
     info = getData(id)
+    print('Title: {}'.format(info['title']))
+    print('Date: {}'.format(info['metadata']['publication_date']))
     print('RecordId: {}'.format(id))
     print('ConceptId: {}'.format(info['conceptrecid']))
-    print('BucketURL: {}'.format(info['links']['bucket']))
-    print('Title: {}'.format(info['title']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
+    print('URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', id))
+    print('BucketURL: {}'.format(info['links']['bucket']))
     print('\n')
 
 
