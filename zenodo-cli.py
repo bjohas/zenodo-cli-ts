@@ -100,7 +100,7 @@ def saveIdsToJson(args):
         if args.show:
             showDeposition(id)
         if args.dump:
-            dumpDeposition(response_data['id'])
+            dumpDeposition(id)
         if args.open:
             webbrowser.open_new_tab(data['links']['html'])
 
