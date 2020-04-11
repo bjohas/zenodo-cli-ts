@@ -347,6 +347,8 @@ parser_duplicate.add_argument('--open', action='store_true',
                               help='Open the deposition in the browser after executing the command.', default=False)
 parser_duplicate.add_argument('--show', action='store_true',
                               help='Show the info of the deposition after executing the command.', default=False)
+parser_duplicate.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_duplicate.set_defaults(func=duplicate)
 
 parser_upload = subparsers.add_parser('upload')
@@ -359,6 +361,8 @@ parser_upload.add_argument('--open', action='store_true',
                            help='Open the deposition in the browser after executing the command.', default=False)
 parser_upload.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
+parser_upload.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_upload.set_defaults(func=upload)
 
 parser_update = subparsers.add_parser(
@@ -375,6 +379,8 @@ parser_update.add_argument('--open', action='store_true',
                            help='Open the deposition in the browser after executing the command.', default=False)
 parser_update.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
+parser_update.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_update.set_defaults(func=update)
 
 parser_create = subparsers.add_parser(
@@ -386,6 +392,8 @@ parser_create.add_argument('--open', action='store_true',
                            help='Open the deposition in the browser after executing the command.', default=False)
 parser_create.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
+parser_create.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_create.set_defaults(func=create)
 
 parser_copy = subparsers.add_parser('multicopy')
@@ -397,6 +405,8 @@ parser_copy.add_argument('--open', action='store_true',
                          help='Open the deposition in the browser after executing the command.', default=False)
 parser_copy.add_argument('--show', action='store_true',
                          help='Show the info of the deposition after executing the command.', default=False)
+parser_copy.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_copy.set_defaults(func=copy)
 
 parser_list = subparsers.add_parser("list")
