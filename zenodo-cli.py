@@ -63,14 +63,20 @@ def getData(id):
 def showDeposition(id):
     id = parseId(id)
     info = getData(id)
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(info)
     print('RecordId: {}'.format(id))
     print('ConceptId: {}'.format(info['conceptrecid']))
     print('BucketURL: {}'.format(info['links']['bucket']))
     print('Title: {}'.format(info['title']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
+    print('\n')
+
+
+def dumpDeposition(id):
+    id = parseId(id)
+    info = getData(id)
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(info)
     print('\n')
 
 
@@ -93,6 +99,8 @@ def saveIdsToJson(args):
             publishDeposition(id)
         if args.show:
             showDeposition(id)
+        if args.dump:
+            dumpDeposition(response_data['id'])
         if args.open:
             webbrowser.open_new_tab(data['links']['html'])
 
@@ -173,6 +181,10 @@ def duplicate(args):
         publishDeposition(response_data['id'])
     if args.show:
         showDeposition(response_data['id'])
+
+    if args.dump:
+        dumpDeposition(response_data['id'])
+
     if args.open:
         webbrowser.open_new_tab(deposit_url)
 
@@ -192,6 +204,8 @@ def upload(args):
             publishDeposition(args.id)
         if args.show and args.id:
             showDeposition(args.id)
+        if args.dump and args.id:
+            dumpDeposition(args.id)
         if args.open and deposit_url:
             webbrowser.open_new_tab(deposit_url)
     else:
@@ -209,7 +223,7 @@ def update(args):
     # TODO
     if data['state'] == 'done':
         # if argument.edit == yes:
-        print('Making editable')
+        print('Making record editable.')
         response = editDeposit(args.id[0])
         # else:
         # sys.exit("Deposit {} has been published already. To edit it, use --edit".format(args.id[0]))
@@ -240,6 +254,9 @@ def update(args):
     if args.show:
         showDeposition(response_data['id'])
 
+    if args.dump:
+            dumpDeposition(response_data['id'])
+
     if args.open:
         webbrowser.open_new_tab(deposit_url)
 
@@ -256,6 +273,9 @@ def create(args):
 
         if args.show:
             showDeposition(response_data['id'])
+
+        if args.dump:
+            dumpDeposition(response_data['id'])
 
         if args.open:
             webbrowser.open_new_tab(response_data['links']['html'])
@@ -281,6 +301,9 @@ def copy(args):
         if args.show:
             showDeposition(response_data['id'])
 
+        if args.dump:
+            dumpDeposition(response_data['id'])
+            
         if args.open:
             webbrowser.open_new_tab(response_data['links']['html'])
 
@@ -307,7 +330,9 @@ parser_get.add_argument('--publish', action='store_true',
 parser_get.add_argument('--open', action='store_true',
                         help='Open the deposition in the browser after executing the command.', default=False)
 parser_get.add_argument('--show', action='store_true',
-                        help='Show the info of the deposition after executing the command.', default=False)
+                        help='Show key information for the deposition after executing the command.', default=False)
+parser_get.add_argument('--dump', action='store_true',
+                        help='Show json for deposition after executing the command.', default=False)
 parser_get.set_defaults(func=saveIdsToJson)
 
 parser_duplicate = subparsers.add_parser(
