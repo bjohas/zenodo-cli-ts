@@ -65,11 +65,12 @@ def showDeposition(id):
     info = getData(id)
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(info)
-    print('Id: {}'.format(id))
-    print('ConceptRecId: {}'.format(info['conceptrecid']))
+    print('RecordId: {}'.format(id))
+    print('ConceptId: {}'.format(info['conceptrecid']))
     print('BucketURL: {}'.format(info['links']['bucket']))
     print('Title: {}'.format(info['title']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
+    print('State: {}'.format(info['state']))
     print('\n')
 
 
@@ -206,7 +207,7 @@ def update(args):
     metadata = data['metadata']
 
     # TODO
-    if data['submitted'] == True:
+    if data['state'] == 'done':
         # if argument.edit == yes:
         print('Making editable')
         response = editDeposit(args.id[0])
