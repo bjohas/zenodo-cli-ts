@@ -45,7 +45,7 @@ def publishDeposition(id):
         print('Error in publshing deposition {}: {}'.format(
             id, json.loads(res.content)))
     else:
-        print('Deposition {} successfully published.'.format(id))
+        print('\tDeposition {} successfully published.'.format(id))
 
 
 def getData(id):
