@@ -223,7 +223,7 @@ def update(args):
     # TODO
     if data['state'] == 'done':
         # if argument.edit == yes:
-        print('Making record editable.')
+        print('\tMaking record editable.')
         response = editDeposit(args.id[0])
         # else:
         # sys.exit("Deposit {} has been published already. To edit it, use --edit".format(args.id[0]))
