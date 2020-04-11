@@ -69,7 +69,8 @@ def showDeposition(id):
     print('ConceptId: {}'.format(info['conceptrecid']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
-    print('URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', id))
+    print(
+        'URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', id))
     print('BucketURL: {}'.format(info['links']['bucket']))
     print('\n')
 
@@ -257,7 +258,7 @@ def update(args):
         showDeposition(response_data['id'])
 
     if args.dump:
-            dumpDeposition(response_data['id'])
+        dumpDeposition(response_data['id'])
 
     if args.open:
         webbrowser.open_new_tab(deposit_url)
@@ -305,13 +306,16 @@ def copy(args):
 
         if args.dump:
             dumpDeposition(response_data['id'])
-            
+
         if args.open:
             webbrowser.open_new_tab(response_data['links']['html'])
 
 
 def listDepositions(args):
-    res = requests.get(ZENODO_API_URL, params=params)
+    listParams = params
+    listParams['page'] = args.page
+    listParams['size'] = args.size
+    res = requests.get(ZENODO_API_URL, params=listParams)
     if res.status_code != 200:
         sys.exit('Failed in listDepositions: {}'.format(
             json.loads(res.content)))
@@ -350,7 +354,7 @@ parser_duplicate.add_argument('--open', action='store_true',
 parser_duplicate.add_argument('--show', action='store_true',
                               help='Show the info of the deposition after executing the command.', default=False)
 parser_duplicate.add_argument('--dump', action='store_true',
-                        help='Show json for deposition after executing the command.', default=False)
+                              help='Show json for deposition after executing the command.', default=False)
 parser_duplicate.set_defaults(func=duplicate)
 
 parser_upload = subparsers.add_parser('upload')
@@ -364,7 +368,7 @@ parser_upload.add_argument('--open', action='store_true',
 parser_upload.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
 parser_upload.add_argument('--dump', action='store_true',
-                        help='Show json for deposition after executing the command.', default=False)
+                           help='Show json for deposition after executing the command.', default=False)
 parser_upload.set_defaults(func=upload)
 
 parser_update = subparsers.add_parser(
@@ -382,7 +386,7 @@ parser_update.add_argument('--open', action='store_true',
 parser_update.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
 parser_update.add_argument('--dump', action='store_true',
-                        help='Show json for deposition after executing the command.', default=False)
+                           help='Show json for deposition after executing the command.', default=False)
 parser_update.set_defaults(func=update)
 
 parser_create = subparsers.add_parser(
@@ -395,7 +399,7 @@ parser_create.add_argument('--open', action='store_true',
 parser_create.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
 parser_create.add_argument('--dump', action='store_true',
-                        help='Show json for deposition after executing the command.', default=False)
+                           help='Show json for deposition after executing the command.', default=False)
 parser_create.set_defaults(func=create)
 
 parser_copy = subparsers.add_parser('multicopy')
@@ -408,10 +412,14 @@ parser_copy.add_argument('--open', action='store_true',
 parser_copy.add_argument('--show', action='store_true',
                          help='Show the info of the deposition after executing the command.', default=False)
 parser_copy.add_argument('--dump', action='store_true',
-                        help='Show json for deposition after executing the command.', default=False)
+                         help='Show json for deposition after executing the command.', default=False)
 parser_copy.set_defaults(func=copy)
 
 parser_list = subparsers.add_parser("list")
+parser_list.add_argument('--page', action='store',
+                         help='Page number of the list.')
+parser_list.add_argument('--size', action='store',
+                         help='Number of records in one page.')
 parser_list.set_defaults(func=listDepositions)
 
 args = parser.parse_args()
