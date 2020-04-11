@@ -324,6 +324,42 @@ def listDepositions(args):
         showDeposition(dep['id'])
 
 
+def newVersion(args):
+    id = parseId(args.id[0])
+    metadata = getMetadata(id)
+
+    if args.title:
+        metadata['title'] = args.title
+    if args.date:
+        metadata['publication_date'] = args.date
+    response = requests.post(
+        '{}/{}/actions/newversion'.format(ZENODO_API_URL, id), params=params)
+
+    if response.status_code != 201:
+        sys.exit('New version request failed: {}'. format(
+            json.loads(response.content)))
+
+    response_data = response.json()
+    # Get bucket_url
+    bucket_url = response_data['links']['bucket']
+    deposit_url = response_data['links']['latest_html']
+
+    if args.files:
+        for filePath in args.files:
+            fileUpload(bucket_url, filePath)
+
+    if args.publish:
+        publishDeposition(response_data['id'])
+    if args.show:
+        showDeposition(response_data['id'])
+
+    if args.dump:
+        dumpDeposition(response_data['id'])
+
+    if args.open:
+        webbrowser.open_new_tab(deposit_url)
+
+
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='.config.json')
 subparsers = parser.add_subparsers(help='sub-command help')
@@ -421,6 +457,22 @@ parser_list.add_argument('--page', action='store',
 parser_list.add_argument('--size', action='store',
                          help='Number of records in one page.')
 parser_list.set_defaults(func=listDepositions)
+
+parser_newversion = subparsers.add_parser(
+    'newversion', help='The newversion command creates a new version of the deposition with id, optionally providing a title and date and file(s).')
+parser_newversion.add_argument('id', nargs=1)
+parser_newversion.add_argument('--title', action='store')
+parser_newversion.add_argument('--date', action='store')
+parser_newversion.add_argument('--files', nargs='*')
+parser_newversion.add_argument('--publish', action='store_true',
+                               help='Publish the deposition after executing the command.', default=False)
+parser_newversion.add_argument('--open', action='store_true',
+                               help='Open the deposition in the browser after executing the command.', default=False)
+parser_newversion.add_argument('--show', action='store_true',
+                               help='Show the info of the deposition after executing the command.', default=False)
+parser_newversion.add_argument('--dump', action='store_true',
+                               help='Show json for deposition after executing the command.', default=False)
+parser_newversion.set_defaults(func=newVersion)
 
 args = parser.parse_args()
 
