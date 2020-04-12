@@ -237,9 +237,12 @@ def update(args):
         metadata['publication_date'] = args.date
     if args.description:
         metadata['description'] = args.description
-    if args.communities:
+    if args.add_communities:
         metadata['communities'] = [{'identifier': community}
-                                   for community in args.communities]
+                                   for community in args.add_communities]
+    if args.remove_communities:
+        metadata['communities'] = list(filter(
+            lambda comm: comm['identifier'] not in args.remove_communities, metadata['communities']))
 
     response_data = updateRecord(args.id[0], metadata)
 
@@ -416,7 +419,8 @@ parser_update.add_argument('--title', action='store')
 parser_update.add_argument('--date', action='store')
 parser_update.add_argument('--description', action='store')
 parser_update.add_argument('--files', nargs='*')
-parser_update.add_argument('--communities', nargs='*')
+parser_update.add_argument('--add-communities', nargs='*')
+parser_update.add_argument('--remove-communities', nargs='*')
 parser_update.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_update.add_argument('--open', action='store_true',
