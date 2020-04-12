@@ -308,11 +308,11 @@ def newVersion(args):
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
-parser.add_argument('--config', action='store', default='.config.json')
+parser.add_argument('--config', action='store', default='config.json' help='Config file with API key. By default config.json then ~/.config/zenodo-cli/config.json are used if no config is provided.')
 subparsers = parser.add_subparsers(help='sub-command help')
 
 parser_list = subparsers.add_parser(
-    "list", help='List deposits for this account. Note that the Zenodo API does not seem to send continuation tokens. The first 1000 results are retrieved. Please use --page to retrieve more.')
+    "list", help='List deposits for this account. Note that the Zenodo API does not seem to send continuation tokens. The first 1000 results are retrieved. Please use --page to retrieve more. The result is the record id, followed by the concept id.')
 parser_list.add_argument('--page', action='store',
                          help='Page number of the list.')
 parser_list.add_argument('--size', action='store',
