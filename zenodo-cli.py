@@ -9,14 +9,24 @@ import webbrowser
 import json
 import argparse
 import pprint
+from pathlib import Path
 
 params = {}
 ZENODO_API_URL = ''
+FALLBACK_CONFIG_FILE = '~/.config/zenodo-cli/config.json'
 
 
 def loadConfig(configFile):
     global params
     global ZENODO_API_URL
+    if Path(configFile).is_file():
+        configFile = configFile
+    elif Path(FALLBACK_CONFIG_FILE).is_file():
+        configFile = FALLBACK_CONFIG_FILE
+    else:
+        sys.exit('Config file not present at {} or {}'.format(
+            'config.json', FALLBACK_CONFIG_FILE))
+
     config = json.load(open(configFile))
     params = {'access_token': config.get('accessToken')}
 
