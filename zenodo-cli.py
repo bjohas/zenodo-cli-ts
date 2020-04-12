@@ -55,7 +55,7 @@ def getData(id):
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
     if res.status_code != 200:
-        sys.oexit('Error in getting data: {}'.format(json.loads(res.content)))
+        sys.exit('Error in getting data: {}'.format(json.loads(res.content)))
 
     return res.json()
 
@@ -218,7 +218,7 @@ def upload(args):
 def update(args):
     data = getData(args.id[0])
 
-    #pp = pprint.PrettyPrinter(indent=4)
+    # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(data)
 
     metadata = data['metadata']
@@ -314,14 +314,16 @@ def copy(args):
 def listDepositions(args):
     listParams = params
     listParams['page'] = args.page
-    listParams['size'] = args.size
+    listParams['size'] = args.size if args.size else 1000
     res = requests.get(ZENODO_API_URL, params=listParams)
     if res.status_code != 200:
         sys.exit('Failed in listDepositions: {}'.format(
             json.loads(res.content)))
 
-    for dep in json.loads(res.content):
-        showDeposition(dep['id'])
+    for dep in res.json():
+        print('{} {}'.format(dep['record_id'], dep['conceptrecid']))
+        if args.show:
+            showDeposition(dep['id'])
 
 
 def newVersion(args):
@@ -456,6 +458,8 @@ parser_list.add_argument('--page', action='store',
                          help='Page number of the list.')
 parser_list.add_argument('--size', action='store',
                          help='Number of records in one page.')
+parser_list.add_argument('--show', action='store_true',
+                         help='Show the info of the deposition after executing the command.', default=False)
 parser_list.set_defaults(func=listDepositions)
 
 parser_newversion = subparsers.add_parser(
