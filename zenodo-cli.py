@@ -423,7 +423,7 @@ parser_get.add_argument('--dump', action='store_true',
 parser_get.set_defaults(func=saveIdsToJson)
 
 parser_create = subparsers.add_parser(
-    'create', help='The create command creates new records based on the json files provided.')
+    'create', help='The create command creates new records based on the json files provided, optionally providing a title / date / description / files.')
 parser_create.add_argument('files', nargs='*')
 parser_create.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
@@ -436,7 +436,7 @@ parser_create.add_argument('--dump', action='store_true',
 parser_create.set_defaults(func=create)
 
 parser_duplicate = subparsers.add_parser(
-    'duplicate', help='The duplicate command duplicates the id to a new id, optionally providing a title and date and file(s).')
+    'duplicate', help='The duplicate command duplicates the id to a new id, optionally providing a title / date / description / files.')
 parser_duplicate.add_argument('id', nargs=1)
 parser_duplicate.add_argument('--title', action='store')
 parser_duplicate.add_argument('--date', action='store')
@@ -452,7 +452,7 @@ parser_duplicate.add_argument('--dump', action='store_true',
 parser_duplicate.set_defaults(func=duplicate)
 
 parser_update = subparsers.add_parser(
-    'update', help='The update command updates the id provided, with the title / date and files provided.')
+    'update', help='The update command updates the id provided, with the title / date / description / files provided.')
 parser_update.add_argument('id', nargs=1)
 parser_update.add_argument('--title', action='store')
 parser_update.add_argument('--date', action='store')
@@ -498,7 +498,7 @@ parser_copy.add_argument('--dump', action='store_true',
 parser_copy.set_defaults(func=copy)
 
 parser_newversion = subparsers.add_parser(
-    'newversion', help='The newversion command creates a new version of the deposition with id, optionally providing a title and date and file(s).')
+    'newversion', help='The newversion command creates a new version of the deposition with id, optionally providing a title / date / description / files.')
 parser_newversion.add_argument('id', nargs=1)
 parser_newversion.add_argument('--title', action='store')
 parser_newversion.add_argument('--date', action='store')
