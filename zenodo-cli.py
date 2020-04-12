@@ -249,7 +249,9 @@ def create(args):
     for json_filepath in args.files:
         print('Processing: ' + json_filepath)
         with open(json_filepath, mode='r') as f:
-            response_data = createRecord(json.loads(f.read()))
+            metadata = json.loads(f.read())
+        metadata = updateMetadata(args, metadata)
+        response_data = createRecord(metadata)
 
         finalActions(args, response_data['id'], response_data['links']['html'])
 
@@ -308,7 +310,8 @@ def newVersion(args):
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
-parser.add_argument('--config', action='store', default='config.json' help='Config file with API key. By default config.json then ~/.config/zenodo-cli/config.json are used if no config is provided.')
+parser.add_argument('--config', action='store', default='config.json',
+                    help='Config file with API key. By default config.json then ~/.config/zenodo-cli/config.json are used if no config is provided.')
 subparsers = parser.add_subparsers(help='sub-command help')
 
 parser_list = subparsers.add_parser(
@@ -337,6 +340,11 @@ parser_get.set_defaults(func=saveIdsToJson)
 parser_create = subparsers.add_parser(
     'create', help='The create command creates new records based on the json files provided, optionally providing a title / date / description / files.')
 parser_create.add_argument('files', nargs='*')
+parser_create.add_argument('--title', action='store')
+parser_create.add_argument('--date', action='store')
+parser_create.add_argument('--description', action='store')
+parser_create.add_argument('--add-communities', nargs='*')
+parser_create.add_argument('--remove-communities', nargs='*')
 parser_create.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_create.add_argument('--open', action='store_true',
@@ -353,6 +361,7 @@ parser_duplicate.add_argument('id', nargs=1)
 parser_duplicate.add_argument('--title', action='store')
 parser_duplicate.add_argument('--date', action='store')
 parser_duplicate.add_argument('--files', nargs='*')
+parser_duplicate.add_argument('--description', action='store')
 parser_duplicate.add_argument('--publish', action='store_true',
                               help='Publish the deposition after executing the command.', default=False)
 parser_duplicate.add_argument('--open', action='store_true',
@@ -417,6 +426,7 @@ parser_newversion.add_argument('id', nargs=1)
 parser_newversion.add_argument('--title', action='store')
 parser_newversion.add_argument('--date', action='store')
 parser_newversion.add_argument('--files', nargs='*')
+parser_newversion.add_argument('--description', action='store')
 parser_newversion.add_argument('--publish', action='store_true',
                                help='Publish the deposition after executing the command.', default=False)
 parser_newversion.add_argument('--open', action='store_true',
