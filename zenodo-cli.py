@@ -484,7 +484,7 @@ parser_upload.add_argument('--dump', action='store_true',
                            help='Show json for deposition after executing the command.', default=False)
 parser_upload.set_defaults(func=upload)
 
-parser_copy = subparsers.add_parser('multicopy', help='To do.')
+parser_copy = subparsers.add_parser('multiduplicate', help='Duplicates existing deposit with id multiple times, once for each file.')
 parser_copy.add_argument('id', nargs=1)
 parser_copy.add_argument('files', nargs='*')
 parser_copy.add_argument('--publish', action='store_true',
