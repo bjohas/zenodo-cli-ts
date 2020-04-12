@@ -98,14 +98,7 @@ def saveIdsToJson(args):
         with open('{}.json'.format(id), 'w') as f:
             data = getData(id)
             json.dump(data['metadata'], f)
-        if args.publish:
-            publishDeposition(id)
-        if args.show:
-            showDeposition(id)
-        if args.dump:
-            dumpDeposition(id)
-        if args.open:
-            webbrowser.open_new_tab(data['links']['html'])
+        finalActions(args, id, data['links']['html'])
 
 
 def createRecord(metadata):
@@ -166,10 +159,7 @@ def duplicate(args):
     metadata['prereserve_doi'] = True
 
     # This needs to be fixed to allow multiple titles to create multiple records
-    if args.title:
-        metadata['title'] = args.title
-    if args.date:
-        metadata['publication_date'] = args.date
+    metadata = updateMetadata(args, metadata)
     response_data = createRecord(metadata)
 
     # Get bucket_url
@@ -180,16 +170,7 @@ def duplicate(args):
         for filePath in args.files:
             fileUpload(bucket_url, filePath)
 
-    if args.publish:
-        publishDeposition(response_data['id'])
-    if args.show:
-        showDeposition(response_data['id'])
-
-    if args.dump:
-        dumpDeposition(response_data['id'])
-
-    if args.open:
-        webbrowser.open_new_tab(deposit_url)
+    finalActions(args, response_data['id'], deposit_url)
 
 
 def upload(args):
@@ -203,32 +184,27 @@ def upload(args):
     if bucket_url:
         for filePath in args.files:
             fileUpload(bucket_url, filePath)
-        if args.publish and args.id:
-            publishDeposition(args.id)
-        if args.show and args.id:
-            showDeposition(args.id)
-        if args.dump and args.id:
-            dumpDeposition(args.id)
-        if args.open and deposit_url:
-            webbrowser.open_new_tab(deposit_url)
+        finalActions(args, args.id, deposit_url)
     else:
         print('Unable to upload: id and bucketurl both not specified.')
 
+
 def updateMetadata(args, metadata):
-    if args.title:
+    if 'title' in args.__dict__ and args.title:
         metadata['title'] = args.title
-    if args.date:
+    if 'date' in args.__dict__ and args.date:
         metadata['publication_date'] = args.date
-    if args.description:
+    if 'description' in args.__dict__ and args.description:
         metadata['description'] = args.description
-    if args.add_communities:
+    if 'add_communites' in args.__dict__ and args.add_communites:
         metadata['communities'] = [{'identifier': community}
                                    for community in args.add_communities]
-    if args.remove_communities:
+    if 'remove_communities' in args.__dict__ and args.remove_communities:
         metadata['communities'] = list(filter(
             lambda comm: comm['identifier'] not in args.remove_communities, metadata['communities']))
 
     return metadata
+
 
 def update(args):
     data = getData(args.id[0])
@@ -239,23 +215,7 @@ def update(args):
         print('\tMaking record editable.')
         response = editDeposit(args.id[0])
 
-    # TODO: This is the same for various functions.
-    # Could this be replaced by a function
-    # metadata = updateMetadata(args, metadata)
-    # ?
-    # See function above.
-    if args.title:
-        metadata['title'] = args.title
-    if args.date:
-        metadata['publication_date'] = args.date
-    if args.description:
-        metadata['description'] = args.description
-    if args.add_communities:
-        metadata['communities'] = [{'identifier': community}
-                                   for community in args.add_communities]
-    if args.remove_communities:
-        metadata['communities'] = list(filter(
-            lambda comm: comm['identifier'] not in args.remove_communities, metadata['communities']))
+    metadata = updateMetadata(args, metadata)
 
     response_data = updateRecord(args.id[0], metadata)
 
@@ -267,37 +227,23 @@ def update(args):
         for filePath in args.files:
             fileUpload(bucket_url, filePath)
 
-    # TODO: This also occurs multiple time.
-    # Could there be a function
-    # finalAction(id, deposit_url)
-    # ? (See below)
-            
-    if args.publish:
-        publishDeposition(response_data['id'])
+    finalActions(args, id, deposit_url)
 
-    if args.show:
-        showDeposition(response_data['id'])
-
-    if args.dump:
-        dumpDeposition(response_data['id'])
-
-    if args.open:
-        webbrowser.open_new_tab(deposit_url)
 
 def finalActions(args, id, deposit_url):
-    if args.publish:
+    if 'publish' in args.__dict__ and args.publish:
         publishDeposition(id)
 
-    if args.show:
+    if 'show' in args.__dict__ and args.show:
         showDeposition(id)
 
-    if args.dump:
+    if 'dump' in args.__dict__ and args.dump:
         dumpDeposition(id)
 
-    if args.open:
+    if 'open' in args.__dict__ and args.open:
         webbrowser.open_new_tab(deposit_url)
-    
-        
+
+
 def create(args):
     # Create new deposits based on the original metadata
     for json_filepath in args.files:
@@ -305,17 +251,7 @@ def create(args):
         with open(json_filepath, mode='r') as f:
             response_data = createRecord(json.loads(f.read()))
 
-        if args.publish:
-            publishDeposition(response_data['id'])
-
-        if args.show:
-            showDeposition(response_data['id'])
-
-        if args.dump:
-            dumpDeposition(response_data['id'])
-
-        if args.open:
-            webbrowser.open_new_tab(response_data['links']['html'])
+        finalActions(args, response_data['id'], response_data['links']['html'])
 
 
 def copy(args):
@@ -332,17 +268,7 @@ def copy(args):
         # Get bucket_url
         bucket_url = response_data['links']['bucket']
         fileUpload(bucket_url, journal_filepath)
-        if args.publish:
-            publishDeposition(response_data['id'])
-
-        if args.show:
-            showDeposition(response_data['id'])
-
-        if args.dump:
-            dumpDeposition(response_data['id'])
-
-        if args.open:
-            webbrowser.open_new_tab(response_data['links']['html'])
+        finalActions(args, response_data['id'], response_data['links']['html'])
 
 
 def listDepositions(args):
@@ -362,12 +288,6 @@ def listDepositions(args):
 
 def newVersion(args):
     id = parseId(args.id[0])
-    metadata = getMetadata(id)
-
-    if args.title:
-        metadata['title'] = args.title
-    if args.date:
-        metadata['publication_date'] = args.date
     response = requests.post(
         '{}/{}/actions/newversion'.format(ZENODO_API_URL, id), params=params)
 
@@ -384,23 +304,15 @@ def newVersion(args):
         for filePath in args.files:
             fileUpload(bucket_url, filePath)
 
-    if args.publish:
-        publishDeposition(response_data['id'])
-    if args.show:
-        showDeposition(response_data['id'])
-
-    if args.dump:
-        dumpDeposition(response_data['id'])
-
-    if args.open:
-        webbrowser.open_new_tab(deposit_url)
+    finalActions(args, response_data['id'], deposit_url)
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='.config.json')
 subparsers = parser.add_subparsers(help='sub-command help')
 
-parser_list = subparsers.add_parser("list", help='List deposits for this account. Note that the Zenodo API does not seem to send continuation tokens. The first 1000 results are retrieved. Please use --page to retrieve more.')
+parser_list = subparsers.add_parser(
+    "list", help='List deposits for this account. Note that the Zenodo API does not seem to send continuation tokens. The first 1000 results are retrieved. Please use --page to retrieve more.')
 parser_list.add_argument('--page', action='store',
                          help='Page number of the list.')
 parser_list.add_argument('--size', action='store',
@@ -470,7 +382,8 @@ parser_update.add_argument('--dump', action='store_true',
                            help='Show json for deposition after executing the command.', default=False)
 parser_update.set_defaults(func=update)
 
-parser_upload = subparsers.add_parser('upload',help='Just upload files (shorthand for update id --files ...)')
+parser_upload = subparsers.add_parser(
+    'upload', help='Just upload files (shorthand for update id --files ...)')
 parser_upload.add_argument('id', nargs='?')
 parser_upload.add_argument('--bucketurl', action='store')
 parser_upload.add_argument('files', nargs='*')
@@ -484,7 +397,8 @@ parser_upload.add_argument('--dump', action='store_true',
                            help='Show json for deposition after executing the command.', default=False)
 parser_upload.set_defaults(func=upload)
 
-parser_copy = subparsers.add_parser('multiduplicate', help='Duplicates existing deposit with id multiple times, once for each file.')
+parser_copy = subparsers.add_parser(
+    'multiduplicate', help='Duplicates existing deposit with id multiple times, once for each file.')
 parser_copy.add_argument('id', nargs=1)
 parser_copy.add_argument('files', nargs='*')
 parser_copy.add_argument('--publish', action='store_true',
