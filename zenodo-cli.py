@@ -400,7 +400,7 @@ parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='.config.json')
 subparsers = parser.add_subparsers(help='sub-command help')
 
-parser_list = subparsers.add_parser("list", help='List deposits for this account.')
+parser_list = subparsers.add_parser("list", help='List deposits for this account. Note that the Zenodo API does not seem to send continuation tokens. The first 1000 results are retrieved. Please use --page to retrieve more.')
 parser_list.add_argument('--page', action='store',
                          help='Page number of the list.')
 parser_list.add_argument('--size', action='store',
