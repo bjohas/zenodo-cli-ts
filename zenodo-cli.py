@@ -214,23 +214,36 @@ def upload(args):
     else:
         print('Unable to upload: id and bucketurl both not specified.')
 
+def updateMetadata(args, metadata):
+    if args.title:
+        metadata['title'] = args.title
+    if args.date:
+        metadata['publication_date'] = args.date
+    if args.description:
+        metadata['description'] = args.description
+    if args.add_communities:
+        metadata['communities'] = [{'identifier': community}
+                                   for community in args.add_communities]
+    if args.remove_communities:
+        metadata['communities'] = list(filter(
+            lambda comm: comm['identifier'] not in args.remove_communities, metadata['communities']))
+
+    return metadata
 
 def update(args):
     data = getData(args.id[0])
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(data)
-
     metadata = data['metadata']
 
-    # TODO
     if data['state'] == 'done':
-        # if argument.edit == yes:
         print('\tMaking record editable.')
         response = editDeposit(args.id[0])
-        # else:
-        # sys.exit("Deposit {} has been published already. To edit it, use --edit".format(args.id[0]))
 
+    # TODO: This is the same for various functions.
+    # Could this be replaced by a function
+    # metadata = updateMetadata(args, metadata)
+    # ?
+    # See function above.
     if args.title:
         metadata['title'] = args.title
     if args.date:
@@ -254,6 +267,11 @@ def update(args):
         for filePath in args.files:
             fileUpload(bucket_url, filePath)
 
+    # TODO: This also occurs multiple time.
+    # Could there be a function
+    # finalAction(id, deposit_url)
+    # ? (See below)
+            
     if args.publish:
         publishDeposition(response_data['id'])
 
@@ -266,7 +284,20 @@ def update(args):
     if args.open:
         webbrowser.open_new_tab(deposit_url)
 
+def finalActions(args, id, deposit_url):
+    if args.publish:
+        publishDeposition(id)
 
+    if args.show:
+        showDeposition(id)
+
+    if args.dump:
+        dumpDeposition(id)
+
+    if args.open:
+        webbrowser.open_new_tab(deposit_url)
+    
+        
 def create(args):
     # Create new deposits based on the original metadata
     for json_filepath in args.files:
