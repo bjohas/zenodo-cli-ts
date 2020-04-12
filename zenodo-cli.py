@@ -369,6 +369,15 @@ parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='.config.json')
 subparsers = parser.add_subparsers(help='sub-command help')
 
+parser_list = subparsers.add_parser("list", help='List deposits for this account.')
+parser_list.add_argument('--page', action='store',
+                         help='Page number of the list.')
+parser_list.add_argument('--size', action='store',
+                         help='Number of records in one page.')
+parser_list.add_argument('--show', action='store_true',
+                         help='Show the info of the deposition after executing the command.', default=False)
+parser_list.set_defaults(func=listDepositions)
+
 parser_get = subparsers.add_parser(
     'get', help='The get command gets the ids listed, and writes these out to id1.json, id2.json etc. The id can be provided as a number, as a deposit URL or record URL')
 parser_get.add_argument('id', nargs='*')
@@ -381,6 +390,19 @@ parser_get.add_argument('--show', action='store_true',
 parser_get.add_argument('--dump', action='store_true',
                         help='Show json for deposition after executing the command.', default=False)
 parser_get.set_defaults(func=saveIdsToJson)
+
+parser_create = subparsers.add_parser(
+    'create', help='The create command creates new records based on the json files provided.')
+parser_create.add_argument('files', nargs='*')
+parser_create.add_argument('--publish', action='store_true',
+                           help='Publish the deposition after executing the command.', default=False)
+parser_create.add_argument('--open', action='store_true',
+                           help='Open the deposition in the browser after executing the command.', default=False)
+parser_create.add_argument('--show', action='store_true',
+                           help='Show the info of the deposition after executing the command.', default=False)
+parser_create.add_argument('--dump', action='store_true',
+                           help='Show json for deposition after executing the command.', default=False)
+parser_create.set_defaults(func=create)
 
 parser_duplicate = subparsers.add_parser(
     'duplicate', help='The duplicate command duplicates the id to a new id, optionally providing a title and date and file(s).')
@@ -397,20 +419,6 @@ parser_duplicate.add_argument('--show', action='store_true',
 parser_duplicate.add_argument('--dump', action='store_true',
                               help='Show json for deposition after executing the command.', default=False)
 parser_duplicate.set_defaults(func=duplicate)
-
-parser_upload = subparsers.add_parser('upload')
-parser_upload.add_argument('id', nargs='?')
-parser_upload.add_argument('--bucketurl', action='store')
-parser_upload.add_argument('files', nargs='*')
-parser_upload.add_argument('--publish', action='store_true',
-                           help='Publish the deposition after executing the command.', default=False)
-parser_upload.add_argument('--open', action='store_true',
-                           help='Open the deposition in the browser after executing the command.', default=False)
-parser_upload.add_argument('--show', action='store_true',
-                           help='Show the info of the deposition after executing the command.', default=False)
-parser_upload.add_argument('--dump', action='store_true',
-                           help='Show json for deposition after executing the command.', default=False)
-parser_upload.set_defaults(func=upload)
 
 parser_update = subparsers.add_parser(
     'update', help='The update command updates the id provided, with the title / date and files provided.')
@@ -431,20 +439,21 @@ parser_update.add_argument('--dump', action='store_true',
                            help='Show json for deposition after executing the command.', default=False)
 parser_update.set_defaults(func=update)
 
-parser_create = subparsers.add_parser(
-    'create', help='The create command creates new records based on the json files provided.')
-parser_create.add_argument('files', nargs='*')
-parser_create.add_argument('--publish', action='store_true',
+parser_upload = subparsers.add_parser('upload',help='Just upload files (shorthand for update id --files ...)')
+parser_upload.add_argument('id', nargs='?')
+parser_upload.add_argument('--bucketurl', action='store')
+parser_upload.add_argument('files', nargs='*')
+parser_upload.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
-parser_create.add_argument('--open', action='store_true',
+parser_upload.add_argument('--open', action='store_true',
                            help='Open the deposition in the browser after executing the command.', default=False)
-parser_create.add_argument('--show', action='store_true',
+parser_upload.add_argument('--show', action='store_true',
                            help='Show the info of the deposition after executing the command.', default=False)
-parser_create.add_argument('--dump', action='store_true',
+parser_upload.add_argument('--dump', action='store_true',
                            help='Show json for deposition after executing the command.', default=False)
-parser_create.set_defaults(func=create)
+parser_upload.set_defaults(func=upload)
 
-parser_copy = subparsers.add_parser('multicopy')
+parser_copy = subparsers.add_parser('multicopy', help='To do.')
 parser_copy.add_argument('id', nargs=1)
 parser_copy.add_argument('files', nargs='*')
 parser_copy.add_argument('--publish', action='store_true',
@@ -456,15 +465,6 @@ parser_copy.add_argument('--show', action='store_true',
 parser_copy.add_argument('--dump', action='store_true',
                          help='Show json for deposition after executing the command.', default=False)
 parser_copy.set_defaults(func=copy)
-
-parser_list = subparsers.add_parser("list")
-parser_list.add_argument('--page', action='store',
-                         help='Page number of the list.')
-parser_list.add_argument('--size', action='store',
-                         help='Number of records in one page.')
-parser_list.add_argument('--show', action='store_true',
-                         help='Show the info of the deposition after executing the command.', default=False)
-parser_list.set_defaults(func=listDepositions)
 
 parser_newversion = subparsers.add_parser(
     'newversion', help='The newversion command creates a new version of the deposition with id, optionally providing a title and date and file(s).')
