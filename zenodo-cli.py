@@ -168,7 +168,6 @@ def duplicate(args):
     del metadata['doi']  # remove the old DOI
     metadata['prereserve_doi'] = True
 
-    # This needs to be fixed to allow multiple titles to create multiple records
     metadata = updateMetadata(args, metadata)
     response_data = createRecord(metadata)
 
@@ -292,6 +291,13 @@ def listDepositions(args):
         sys.exit('Failed in listDepositions: {}'.format(
             json.loads(res.content)))
 
+    # TODO: Please check this code.
+    if 'dump' in args.__dict__ and args.dump:
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(res.json())
+        print('\n')
+        
+    # TODO: This should use finalActions for each record
     for dep in res.json():
         print('{} {}'.format(dep['record_id'], dep['conceptrecid']))
         if args.show:
@@ -308,6 +314,13 @@ def newVersion(args):
             json.loads(response.content)))
 
     response_data = response.json()
+
+    # TODO: Add metadata changes here too.
+    #
+    # newmetadata = updateMetadata(args, metadata)
+    # if newmetadata != metadata:
+    # update record
+
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
     deposit_url = response_data['links']['latest_html']
