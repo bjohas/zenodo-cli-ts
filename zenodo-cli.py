@@ -10,10 +10,11 @@ import json
 import argparse
 import pprint
 from pathlib import Path
+import os
 
 params = {}
 ZENODO_API_URL = ''
-FALLBACK_CONFIG_FILE = '~/.config/zenodo-cli/config.json'
+FALLBACK_CONFIG_FILE = os.environ['HOME'] + '/.config/zenodo-cli/config.json'
 
 
 def loadConfig(configFile):
@@ -69,10 +70,7 @@ def getData(id):
 
     return res.json()
 
-
-def showDeposition(id):
-    id = parseId(id)
-    info = getData(id)
+def showDepositionJSON(info):
     print('Title: {}'.format(info['title']))
     print('Date: {}'.format(info['metadata']['publication_date']))
     print('RecordId: {}'.format(id))
@@ -84,14 +82,20 @@ def showDeposition(id):
     print('BucketURL: {}'.format(info['links']['bucket']))
     print('\n')
 
-
-def dumpDeposition(id):
+def showDeposition(id):
     id = parseId(id)
     info = getData(id)
+    showDepositinJSON(info)
+
+def dumpJSON(info):
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(info)
     print('\n')
-
+   
+def dumpDeposition(id):
+    id = parseId(id)
+    info = getData(id)
+    dumpJSON(info)
 
 def getMetadata(id):
     # Fetch the original deposit metadata
@@ -110,9 +114,8 @@ def saveIdsToJson(args):
             json.dump(data['metadata'], f)
         finalActions(args, id, data['links']['html'])
 
-
 def createRecord(metadata):
-    # Creating record metadata
+    # Creating record from metadata
     print('\tCreating record.')
     res = requests.post(ZENODO_API_URL, json={
                         'metadata': metadata}, params=params)
@@ -124,6 +127,7 @@ def createRecord(metadata):
 
 
 def editDeposit(dep_id):
+    # Make deposition editable.
     dep_id = parseId(dep_id)
     res = requests.post(
         '{}/{}/actions/edit'.format(ZENODO_API_URL, dep_id), params=params)
@@ -293,15 +297,23 @@ def listDepositions(args):
 
     # TODO: Please check this code.
     if 'dump' in args.__dict__ and args.dump:
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(res.json())
-        print('\n')
+        dumpJSON(res.json())
         
-    # TODO: This should use finalActions for each record
+    # TODO: This should do 'finalActions' for each record
+    # However, the retrieval of the record should be avoided, so we have to write it out
+    # See changes above.
     for dep in res.json():
         print('{} {}'.format(dep['record_id'], dep['conceptrecid']))
-        if args.show:
+
+        if 'publish' in args.__dict__ and args.publish:
+            publishDeposition(id)
+
+        if 'show' in args.__dict__ and args.show:
             showDeposition(dep['id'])
+            # showDepositionJSON(some_json)
+            
+        if 'open' in args.__dict__ and args.open:
+            webbrowser.open_new_tab(deposit_url)
 
 
 def newVersion(args):
@@ -343,8 +355,14 @@ parser_list.add_argument('--page', action='store',
                          help='Page number of the list.')
 parser_list.add_argument('--size', action='store',
                          help='Number of records in one page.')
+parser_list.add_argument('--publish', action='store_true',
+                        help='Publish the depositions after executing the command.', default=False)
+parser_list.add_argument('--open', action='store_true',
+                        help='Open the depositions in the browser after executing the command.', default=False)
 parser_list.add_argument('--show', action='store_true',
-                         help='Show the info of the deposition after executing the command.', default=False)
+                        help='Show key information for the depositions after executing the command.', default=False)
+parser_list.add_argument('--dump', action='store_true',
+                        help='Show json for list and for depositions after executing the command.', default=False)
 parser_list.set_defaults(func=listDepositions)
 
 parser_get = subparsers.add_parser(
