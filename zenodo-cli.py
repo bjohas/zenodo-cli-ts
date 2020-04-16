@@ -85,7 +85,7 @@ def showDepositionJSON(info):
 def showDeposition(id):
     id = parseId(id)
     info = getData(id)
-    showDepositinJSON(info)
+    showDepositionJSON(info)
 
 def dumpJSON(info):
     pp = pprint.PrettyPrinter(indent=4)
