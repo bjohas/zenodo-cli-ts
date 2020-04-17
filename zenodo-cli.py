@@ -73,13 +73,19 @@ def getData(id):
 def showDepositionJSON(info):
     print('Title: {}'.format(info['title']))
     print('Date: {}'.format(info['metadata']['publication_date']))
-    print('RecordId: {}'.format(id))
-    print('ConceptId: {}'.format(info['conceptrecid']))
+    print('RecordId: {}'.format(info['id']))
+    if ('conceptrecid' in info.keys()):
+        print('ConceptId: {}'.format(info['conceptrecid']))
+    else:
+        print('ConceptId: N/A')
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
     print(
         'URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', id))
-    print('BucketURL: {}'.format(info['links']['bucket']))
+    if ('bucket' in info['links'].keys()):
+        print('BucketURL: {}'.format(info['links']['bucket']))
+    else:
+        print('BucketURL: N/A')
     print('\n')
 
 def showDeposition(id):
@@ -295,26 +301,20 @@ def listDepositions(args):
         sys.exit('Failed in listDepositions: {}'.format(
             json.loads(res.content)))
 
-    # TODO: Please check this code.
     if 'dump' in args.__dict__ and args.dump:
         dumpJSON(res.json())
-        
-    # TODO: This should do 'finalActions' for each record
-    # However, the retrieval of the record should be avoided, so we have to write it out
-    # See changes above.
+
     for dep in res.json():
         print('{} {}'.format(dep['record_id'], dep['conceptrecid']))
 
         if 'publish' in args.__dict__ and args.publish:
-            publishDeposition(id)
+            publishDeposition(dep['id'])
 
         if 'show' in args.__dict__ and args.show:
-            showDeposition(dep['id'])
-            # showDepositionJSON(some_json)
+            showDepositionJSON(dep)
             
         if 'open' in args.__dict__ and args.open:
-            webbrowser.open_new_tab(deposit_url)
-
+            webbrowser.open_new_tab(dep['links']['html'])
 
 def newVersion(args):
     id = parseId(args.id[0])
