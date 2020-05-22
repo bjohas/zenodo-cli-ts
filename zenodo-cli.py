@@ -70,6 +70,7 @@ def getData(id):
 
     return res.json()
 
+
 def showDepositionJSON(info):
     print('Title: {}'.format(info['title']))
     print('Date: {}'.format(info['metadata']['publication_date']))
@@ -88,20 +89,24 @@ def showDepositionJSON(info):
         print('BucketURL: N/A')
     print('\n')
 
+
 def showDeposition(id):
     id = parseId(id)
     info = getData(id)
     showDepositionJSON(info)
 
+
 def dumpJSON(info):
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(info)
     print('\n')
-   
+
+
 def dumpDeposition(id):
     id = parseId(id)
     info = getData(id)
     dumpJSON(info)
+
 
 def getMetadata(id):
     # Fetch the original deposit metadata
@@ -119,6 +124,7 @@ def saveIdsToJson(args):
             data = getData(id)
             json.dump(data['metadata'], f)
         finalActions(args, id, data['links']['html'])
+
 
 def createRecord(metadata):
     # Creating record from metadata
@@ -312,9 +318,10 @@ def listDepositions(args):
 
         if 'show' in args.__dict__ and args.show:
             showDepositionJSON(dep)
-            
+
         if 'open' in args.__dict__ and args.open:
             webbrowser.open_new_tab(dep['links']['html'])
+
 
 def newVersion(args):
     id = parseId(args.id[0])
@@ -327,13 +334,11 @@ def newVersion(args):
 
     response_data = response.json()
 
-    # TODO: Add metadata changes here too.
-    #
-    # newmetadata = updateMetadata(args, metadata)
-    # if newmetadata != metadata:
-    # update record
+    metadata = getMetadata(id)
+    newmetadata = updateMetadata(args, metadata)
+    if newmetadata != metadata:
+        response_data = updateRecord(id, newmetadata)
 
-    # Get bucket_url
     bucket_url = response_data['links']['bucket']
     deposit_url = response_data['links']['latest_html']
 
@@ -356,13 +361,13 @@ parser_list.add_argument('--page', action='store',
 parser_list.add_argument('--size', action='store',
                          help='Number of records in one page.')
 parser_list.add_argument('--publish', action='store_true',
-                        help='Publish the depositions after executing the command.', default=False)
+                         help='Publish the depositions after executing the command.', default=False)
 parser_list.add_argument('--open', action='store_true',
-                        help='Open the depositions in the browser after executing the command.', default=False)
+                         help='Open the depositions in the browser after executing the command.', default=False)
 parser_list.add_argument('--show', action='store_true',
-                        help='Show key information for the depositions after executing the command.', default=False)
+                         help='Show key information for the depositions after executing the command.', default=False)
 parser_list.add_argument('--dump', action='store_true',
-                        help='Show json for list and for depositions after executing the command.', default=False)
+                         help='Show json for list and for depositions after executing the command.', default=False)
 parser_list.set_defaults(func=listDepositions)
 
 parser_get = subparsers.add_parser(
