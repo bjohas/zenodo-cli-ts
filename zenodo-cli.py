@@ -38,11 +38,14 @@ def loadConfig(configFile):
 
 
 def parseId(id):
+    if str(id).isnumeric():
+        print("ID=" + str(id));
+        return id
     slash_split = str(id).split('/')[-1]
     if slash_split.isnumeric():
         id = slash_split
     else:
-        dot_split = id.split('.')[-1]
+        dot_split = str(id).split('.')[-1]
         if dot_split.isnumeric():
             id = dot_split
     return id
@@ -61,7 +64,9 @@ def publishDeposition(id):
 
 def getData(id):
     # Fetch the original deposit metadata
+    print("id="+str(id))
     id = parseId(id)
+    print("id="+str(id))
     res = requests.get(
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
