@@ -39,7 +39,7 @@ def loadConfig(configFile):
 
 def parseId(id):
     if str(id).isnumeric():
-        print("ID=" + str(id));
+        print("ID=" + str(id))
         return id
     slash_split = str(id).split('/')[-1]
     if slash_split.isnumeric():
@@ -87,7 +87,7 @@ def showDepositionJSON(info):
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
     print(
-        'URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', id))
+        'URL: https://zenodo.org/{}/{}'.format('record' if info['submitted'] else 'deposit', info['id']))
     if ('bucket' in info['links'].keys()):
         print('BucketURL: {}'.format(info['links']['bucket']))
     else:
