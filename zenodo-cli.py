@@ -237,17 +237,18 @@ def updateMetadata(args, metadata):
 
 
 def update(args):
-    data = getData(args.id[0])
+    id = parseId(args.id[0])
+    data = getData(id)
 
     metadata = data['metadata']
 
     if data['state'] == 'done':
         print('\tMaking record editable.')
-        response = editDeposit(args.id[0])
+        response = editDeposit(id)
 
     metadata = updateMetadata(args, metadata)
 
-    response_data = updateRecord(args.id[0], metadata)
+    response_data = updateRecord(id, metadata)
 
     # Get bucket_url
     bucket_url = response_data['links']['bucket']
