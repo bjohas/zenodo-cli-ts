@@ -1,0 +1,21 @@
+{
+  "access_right": "open",
+  "communities": [
+    {
+      "identifier": "zenodo"
+    }
+  ],
+  "description": "",
+  "doi": "",
+  "publication_type": "report",
+  "related_identifiers": [
+    {
+      "identifier": "",
+      "relation": "isAlternateIdentifier",
+      "resource_type": "other",
+      "scheme": "url"
+    }
+  ],
+  "title": "",
+  "upload_type": "publication"
+}
