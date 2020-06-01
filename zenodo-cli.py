@@ -39,7 +39,6 @@ def loadConfig(configFile):
 
 def parseId(id):
     if str(id).isnumeric():
-        print("ID=" + str(id))
         return id
     slash_split = str(id).split('/')[-1]
     if slash_split.isnumeric():
@@ -64,9 +63,7 @@ def publishDeposition(id):
 
 def getData(id):
     # Fetch the original deposit metadata
-    print("id="+str(id))
     id = parseId(id)
-    print("id="+str(id))
     res = requests.get(
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
@@ -84,6 +81,7 @@ def showDepositionJSON(info):
         print('ConceptId: {}'.format(info['conceptrecid']))
     else:
         print('ConceptId: N/A')
+    print('DOI: {}'.format(info['metadata']['prereserve_doi']['doi']))
     print('Published: {}'.format('yes' if info['submitted'] else 'no'))
     print('State: {}'.format(info['state']))
     print(
