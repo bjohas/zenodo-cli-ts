@@ -25,8 +25,9 @@ def loadConfig(configFile):
     elif Path(FALLBACK_CONFIG_FILE).is_file():
         configFile = FALLBACK_CONFIG_FILE
     else:
-        sys.exit('Config file not present at {} or {}'.format(
+        print('Config file not present at {} or {}'.format(
             'config.json', FALLBACK_CONFIG_FILE))
+        sys.exit(1)
 
     config = json.load(open(configFile))
     params = {'access_token': config.get('accessToken')}
@@ -68,7 +69,8 @@ def getData(id):
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
     if res.status_code != 200:
-        sys.exit('Error in getting data: {}'.format(json.loads(res.content)))
+        print('Error in getting data: {}'.format(json.loads(res.content)))
+        sys.exit(1)
 
     return res.json()
 
@@ -135,8 +137,9 @@ def createRecord(metadata):
     res = requests.post(ZENODO_API_URL, json={
                         'metadata': metadata}, params=params)
     if res.status_code != 201:
-        sys.exit('Error in creating new record: {}'.format(
+        print('Error in creating new record: {}'.format(
             json.loads(res.content)))
+        sys.exit(1)
     response_data = res.json()
     return response_data
 
@@ -148,8 +151,9 @@ def editDeposit(dep_id):
         '{}/{}/actions/edit'.format(ZENODO_API_URL, dep_id), params=params)
 
     if res.status_code != 201:
-        sys.exit('Error in making record editable. {}'.format(
+        print('Error in making record editable. {}'.format(
             json.loads(res.content)))
+        sys.exit(1)
 
     response_data = res.json()
     return response_data
@@ -162,8 +166,9 @@ def updateRecord(dep_id, metadata):
     res = requests.put(ZENODO_API_URL + '/' + dep_id, json={
         'metadata': metadata}, params=params)
     if res.status_code != 200:
-        sys.exit('Error in updating record. {}'.format(
+        print('Error in updating record. {}'.format(
             json.loads(res.content)))
+        sys.exit(1)
     response_data = res.json()
     return response_data
 
@@ -176,8 +181,9 @@ def fileUpload(bucket_url, journal_filepath):
         replaced = re.sub('^.*\/', '', journal_filepath)
         res = requests.put(bucket_url + '/' + replaced, data=fp, params=params)
     if res.status_code != 200:
-        sys.exit('Error in creating file upload: {}'.format(
+        print('Error in creating file upload: {}'.format(
             json.loads(res.content)))
+        sys.exit(1)
     # notify user
     print('\tUpload successful.')
 
@@ -308,8 +314,9 @@ def listDepositions(args):
     listParams['size'] = args.size if args.size else 1000
     res = requests.get(ZENODO_API_URL, params=listParams)
     if res.status_code != 200:
-        sys.exit('Failed in listDepositions: {}'.format(
+        print('Failed in listDepositions: {}'.format(
             json.loads(res.content)))
+        sys.exit(1)
 
     if 'dump' in args.__dict__ and args.dump:
         dumpJSON(res.json())
@@ -333,8 +340,9 @@ def newVersion(args):
         '{}/{}/actions/newversion'.format(ZENODO_API_URL, id), params=params)
 
     if response.status_code != 201:
-        sys.exit('New version request failed: {}'. format(
+        print('New version request failed: {}'. format(
             json.loads(response.content)))
+        sys.exit(1)
 
     response_data = response.json()
 
