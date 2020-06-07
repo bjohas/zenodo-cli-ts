@@ -245,6 +245,10 @@ def updateMetadata(args, metadata):
                 'scheme': 'url'
             }
         ]
+    if 'json' in args.__dict__ and args.json:
+        with open(args.json) as meta_file:
+            for (key, value) in json.load(meta_file).items():
+                metadata[key] = value
 
     return metadata
 
@@ -414,6 +418,8 @@ parser_create.add_argument('--add-communities', nargs='*')
 parser_create.add_argument('--remove-communities', nargs='*')
 parser_create.add_argument('--zotero-link', action='store',
                            help='Zotero link of the zotero record to be linked.')
+parser_create.add_argument('--json', action='store',
+                           help='Path of the JSON file with the metadata of the zenodo record to be created.')
 parser_create.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_create.add_argument('--open', action='store_true',
@@ -452,6 +458,8 @@ parser_update.add_argument('--add-communities', nargs='*')
 parser_update.add_argument('--remove-communities', nargs='*')
 parser_update.add_argument('--zotero-link', action='store',
                            help='Zotero link of the zotero record to be linked.')
+parser_update.add_argument('--json', action='store',
+                           help='Path of the JSON file with the metadata of the zenodo record to be updated.')
 parser_update.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_update.add_argument('--open', action='store_true',
