@@ -236,6 +236,10 @@ def updateMetadata(args, metadata):
     if 'remove_communities' in args.__dict__ and args.remove_communities:
         metadata['communities'] = list(filter(
             lambda comm: comm['identifier'] not in args.remove_communities, metadata['communities']))
+    if 'communities' in args.__dict__ and args.communities:
+        with open(args.communities) as comm:
+            metadata['communities'] = [{'identifier': community}
+                                       for community in comm.read().splitlines()]
     if 'zotero_link' in args.__dict__ and args.zotero_link:
         metadata['related_identifiers'] = [
             {
@@ -416,6 +420,7 @@ parser_create.add_argument('--date', action='store')
 parser_create.add_argument('--description', action='store')
 parser_create.add_argument('--add-communities', nargs='*')
 parser_create.add_argument('--remove-communities', nargs='*')
+parser_create.add_argument('--communities', action='store')
 parser_create.add_argument('--zotero-link', action='store',
                            help='Zotero link of the zotero record to be linked.')
 parser_create.add_argument('--json', action='store',
