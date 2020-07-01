@@ -240,6 +240,21 @@ def updateMetadata(args, metadata):
         with open(args.communities) as comm:
             metadata['communities'] = [{'identifier': community}
                                        for community in comm.read().splitlines()]
+    if 'authordata' in args.__dict__ and args.authordata:
+        with open(args.authordata) as author_data_fp:
+            metadata['creators'] = []
+            for author_data in author_data_fp.read().splitlines():
+                if author_data.strip():
+                    creator = author_data.split('\t')
+                    metadata['creators'].append({
+                        'name': creator[0],
+                        'affiliation': creator[1],
+                        'orcid': creator[2]
+                    })
+    if 'authors' in args.__dict__ and args.authors:
+        metadata['creators'] = [{'name': author}
+                                for author in args.authors.split(';')]
+
     if 'zotero_link' in args.__dict__ and args.zotero_link:
         metadata['related_identifiers'] = [
             {
@@ -421,6 +436,8 @@ parser_create.add_argument('--description', action='store')
 parser_create.add_argument('--add-communities', nargs='*')
 parser_create.add_argument('--remove-communities', nargs='*')
 parser_create.add_argument('--communities', action='store')
+parser_create.add_argument('--authordata', action='store')
+parser_create.add_argument('--authors', action='store')
 parser_create.add_argument('--zotero-link', action='store',
                            help='Zotero link of the zotero record to be linked.')
 parser_create.add_argument('--json', action='store',
