@@ -10,7 +10,7 @@
   "publication_type": "report",
   "related_identifiers": [
     {
-      "identifier": "",
+      "identifier": "zotero://abcd",
       "relation": "isAlternateIdentifier",
       "resource_type": "other",
       "scheme": "url"
