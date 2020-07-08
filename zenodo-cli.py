@@ -181,9 +181,7 @@ def fileUpload(bucket_url, journal_filepath):
         replaced = re.sub('^.*\/', '', journal_filepath)
         res = requests.put(bucket_url + '/' + replaced, data=fp, params=params)
     if res.status_code != 200:
-        print('Error in creating file upload: {}'.format(
-            json.loads(res.content)))
-        sys.exit(1)
+        sys.exit(json.dumps(res.json()))
     # notify user
     print('\tUpload successful.')
 
@@ -391,6 +389,7 @@ def newVersion(args):
             fileUpload(bucket_url, filePath)
 
     finalActions(args, response_data['id'], deposit_url)
+    print('latest_draft: ', response_data['links']['latest_draft'])
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
