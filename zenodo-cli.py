@@ -77,7 +77,10 @@ def getData(id):
 
 def showDepositionJSON(info):
     print('Title: {}'.format(info['title']))
-    print('Date: {}'.format(info['metadata']['publication_date']))
+    if 'publication_date' in info['metadata']:
+        print('Date: {}'.format(info['metadata']['publication_date']))
+    else:
+        print('Date: N/A')
     print('RecordId: {}'.format(info['id']))
     if ('conceptrecid' in info.keys()):
         print('ConceptId: {}'.format(info['conceptrecid']))
