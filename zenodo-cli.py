@@ -395,6 +395,17 @@ def newVersion(args):
     print('latest_draft: ', response_data['links']['latest_draft'])
 
 
+def download(args):
+    id = parseId(args.id[0])
+    data = getData(id)
+    for fileObj in data['files']:
+        name = fileObj["filename"]
+        print(f'Downloading {name}')
+        contents = requests.get(fileObj["links"]["download"], params=params)
+        with open(name, 'w+') as fp:
+            fp.write(contents.text)
+
+
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='config.json',
                     help='Config file with API key. By default config.json then ~/.config/zenodo-cli/config.json are used if no config is provided.')
@@ -539,6 +550,11 @@ parser_newversion.add_argument('--show', action='store_true',
 parser_newversion.add_argument('--dump', action='store_true',
                                help='Show json for deposition after executing the command.', default=False)
 parser_newversion.set_defaults(func=newVersion)
+
+parser_download = subparsers.add_parser(
+    'download', help='Download all the files in the deposition.')
+parser_download.add_argument('id', nargs=1)
+parser_download.set_defaults(func=download)
 
 args = parser.parse_args()
 
