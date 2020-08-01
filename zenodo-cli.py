@@ -402,9 +402,13 @@ def download(args):
         name = fileObj["filename"]
         print(f'Downloading {name}')
         contents = requests.get(fileObj["links"]["download"], params=params)
-        with open(name, 'w+') as fp:
-            fp.write(contents.text)
-
+        with open(name, 'wb+') as fp:
+            fp.write(contents.content)
+        with open(name+'.md5', 'w+') as fp:
+            fp.write(fileObj["checksum"]+" "+fileObj["filename"])
+            
+# To do: integrate better download code from here?
+# https://gitlab.com/dvolgyes/zenodo_get/-/blob/master/zenodo_get/__main__.py
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='config.json',
