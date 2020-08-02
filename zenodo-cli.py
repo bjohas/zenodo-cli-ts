@@ -69,10 +69,25 @@ def getData(id):
         '{}/{}'.format(ZENODO_API_URL, id),
         params=params)
     if res.status_code != 200:
-        print('Error in getting data: {}'.format(json.loads(res.content)))
-        sys.exit(1)
+        myres = json.loads(res.content)
+        # print(format(myres['status']))
+        if myres['status'] != 404:
+            print('Error in getting data: {}'.format(json.loads(res.content)))
+            sys.exit(1)
+        else:
+            print('Checking concept ID.')
+            listParams = params
+            listParams['q'] = "conceptrecid:" + id
+            res = requests.get(ZENODO_API_URL, params=listParams)
+            if res.status_code != 200:
+                print('Failed in getting data: {}'.format(
+                    json.loads(res.content)))
+            else:
+                print('Found record ID: '+ str(res.json()[0]['id']))
+                return res.json()[0]
 
-    return res.json()
+    else:
+        return res.json()
 
 
 def showDepositionJSON(info):
@@ -406,9 +421,39 @@ def download(args):
             fp.write(contents.content)
         with open(name+'.md5', 'w+') as fp:
             fp.write(fileObj["checksum"]+" "+fileObj["filename"])
-            
-# To do: integrate better download code from here?
-# https://gitlab.com/dvolgyes/zenodo_get/-/blob/master/zenodo_get/__main__.py
+        # Would be good to check the checksum at this stage?            
+        # To do: integrate better download code from here?
+        # https://gitlab.com/dvolgyes/zenodo_get/-/blob/master/zenodo_get/__main__.py
+
+
+def concept(args):
+    # - /api/deposit/depositions?q=conceptrecid:<conceptrecid>
+    id = parseId(args.id[0])
+    listParams = params
+    listParams['q'] = "conceptrecid:" + id
+    res = requests.get(ZENODO_API_URL, params=listParams)
+    if res.status_code != 200:
+        print('Failed in concept(args): {}'.format(
+            json.loads(res.content)))
+        sys.exit(1)
+
+    if 'dump' in args.__dict__ and args.dump:
+        dumpJSON(res.json())
+
+    for dep in res.json():
+        print('{} {}'.format(dep['record_id'], dep['conceptrecid']))
+
+        if 'publish' in args.__dict__ and args.publish:
+            publishDeposition(dep['id'])
+
+        if 'show' in args.__dict__ and args.show:
+            showDepositionJSON(dep)
+
+        if 'open' in args.__dict__ and args.open:
+            webbrowser.open_new_tab(dep['links']['html'])
+
+
+
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
 parser.add_argument('--config', action='store', default='config.json',
@@ -559,6 +604,18 @@ parser_download = subparsers.add_parser(
     'download', help='Download all the files in the deposition.')
 parser_download.add_argument('id', nargs=1)
 parser_download.set_defaults(func=download)
+
+parser_concept = subparsers.add_parser(
+    'concept', help='Get the record id from a concept id.')
+parser_concept.add_argument('id', nargs=1)
+parser_concept.add_argument('--dump', action='store_true',
+                         help='Show json for list and for depositions after executing the command.', default=False)
+parser_concept.add_argument('--open', action='store_true',
+                               help='Open the deposition in the browser after executing the command.', default=False)
+parser_concept.add_argument('--show', action='store_true',
+                               help='Show the info of the deposition after executing the command.', default=False)
+parser_concept.set_defaults(func=concept)
+
 
 args = parser.parse_args()
 
