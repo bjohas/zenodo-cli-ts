@@ -83,7 +83,7 @@ def getData(id):
                 print('Failed in getting data: {}'.format(
                     json.loads(res.content)))
             else:
-                print('Found record ID: '+ str(res.json()[0]['id']))
+                print('Found record ID: ' + str(res.json()[0]['id']))
                 return res.json()[0]
 
     else:
@@ -329,14 +329,12 @@ def finalActions(args, id, deposit_url):
 
 def create(args):
     # Create new deposits based on the original metadata
-    for json_filepath in args.files:
-        print('Processing: ' + json_filepath)
-        with open(json_filepath, mode='r') as f:
-            metadata = json.loads(f.read())
-        metadata = updateMetadata(args, metadata)
-        response_data = createRecord(metadata)
+    with open('blank.json', mode='r') as f:
+        metadata = json.loads(f.read())
+    metadata = updateMetadata(args, metadata)
+    response_data = createRecord(metadata)
 
-        finalActions(args, response_data['id'], response_data['links']['html'])
+    finalActions(args, response_data['id'], response_data['links']['html'])
 
 
 def copy(args):
@@ -421,7 +419,7 @@ def download(args):
             fp.write(contents.content)
         with open(name+'.md5', 'w+') as fp:
             fp.write(fileObj["checksum"]+" "+fileObj["filename"])
-        # Would be good to check the checksum at this stage?            
+        # Would be good to check the checksum at this stage?
         # To do: integrate better download code from here?
         # https://gitlab.com/dvolgyes/zenodo_get/-/blob/master/zenodo_get/__main__.py
 
@@ -451,8 +449,6 @@ def concept(args):
 
         if 'open' in args.__dict__ and args.open:
             webbrowser.open_new_tab(dep['links']['html'])
-
-
 
 
 parser = argparse.ArgumentParser(description='Zenodo command line utility')
@@ -491,7 +487,6 @@ parser_get.set_defaults(func=saveIdsToJson)
 
 parser_create = subparsers.add_parser(
     'create', help='The create command creates new records based on the json files provided, optionally providing a title / date / description / files.')
-parser_create.add_argument('files', nargs='*')
 parser_create.add_argument('--title', action='store')
 parser_create.add_argument('--date', action='store')
 parser_create.add_argument('--description', action='store')
@@ -609,11 +604,11 @@ parser_concept = subparsers.add_parser(
     'concept', help='Get the record id from a concept id.')
 parser_concept.add_argument('id', nargs=1)
 parser_concept.add_argument('--dump', action='store_true',
-                         help='Show json for list and for depositions after executing the command.', default=False)
+                            help='Show json for list and for depositions after executing the command.', default=False)
 parser_concept.add_argument('--open', action='store_true',
-                               help='Open the deposition in the browser after executing the command.', default=False)
+                            help='Open the deposition in the browser after executing the command.', default=False)
 parser_concept.add_argument('--show', action='store_true',
-                               help='Show the info of the deposition after executing the command.', default=False)
+                            help='Show the info of the deposition after executing the command.', default=False)
 parser_concept.set_defaults(func=concept)
 
 
