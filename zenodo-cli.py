@@ -240,6 +240,10 @@ def upload(args):
 
 
 def updateMetadata(args, metadata):
+    if 'json' in args.__dict__ and args.json:
+        with open(args.json) as meta_file:
+            for (key, value) in json.load(meta_file).items():
+                metadata[key] = value
     if 'title' in args.__dict__ and args.title:
         metadata['title'] = args.title
     if 'date' in args.__dict__ and args.date:
@@ -280,10 +284,6 @@ def updateMetadata(args, metadata):
                 'scheme': 'url'
             }
         ]
-    if 'json' in args.__dict__ and args.json:
-        with open(args.json) as meta_file:
-            for (key, value) in json.load(meta_file).items():
-                metadata[key] = value
 
     return metadata
 
