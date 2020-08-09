@@ -487,16 +487,16 @@ parser_get.set_defaults(func=saveIdsToJson)
 
 parser_create = subparsers.add_parser(
     'create', help='The create command creates new records based on the json files provided, optionally providing a title / date / description / files.')
-parser_create.add_argument('--title', action='store')
-parser_create.add_argument('--date', action='store')
-parser_create.add_argument('--description', action='store')
-parser_create.add_argument('--communities', action='store')
-parser_create.add_argument('--authordata', action='store')
-parser_create.add_argument('--authors', action='store')
-parser_create.add_argument('--zotero-link', action='store',
-                           help='Zotero link of the zotero record to be linked.')
 parser_create.add_argument('--json', action='store',
-                           help='Path of the JSON file with the metadata of the zenodo record to be created.')
+                           help='Path of the JSON file with the metadata for the zenodo record to be created. If this file is not provided, a template is used. The following options override settings from the JSON file / template.')
+parser_create.add_argument('--title', action='store', help='The title of the record. Overrides data provided via --json.')
+parser_create.add_argument('--date', action='store', help='The date of the record. Overrides data provided via --json.')
+parser_create.add_argument('--description', action='store', help='The description (abstract) of the record. Overrides data provided via --json.')
+parser_create.add_argument('--communities', action='store', help='List of communities for the record (comma-separated). Overrides data provided via --json.')
+parser_create.add_argument('--authors', action='store', help='List of authors, separated with semicolon. Do not provide institution/ORCID. Instead, these can be supplied using --authordata. Overrides data provided via --json.')
+parser_create.add_argument('--authordata', action='store', help='A text file with a database of authors. Each line has author, institution, ORCID (tab-separated). The data is used to supplement insitution/ORCID to author names specified with --authors. Note that authors are only added to the record when specified with --authors, not because they appear in the specified authordate file. ')
+parser_create.add_argument('--zotero-link', action='store',
+                           help='Zotero link of the zotero record to be linked. Overrides data provided via --json.')
 parser_create.add_argument('--publish', action='store_true',
                            help='Publish the deposition after executing the command.', default=False)
 parser_create.add_argument('--open', action='store_true',
