@@ -240,10 +240,15 @@ def upload(args):
 
 
 def updateMetadata(args, metadata):
+    author_data_dict = {}
     if 'json' in args.__dict__ and args.json:
         with open(args.json) as meta_file:
             for (key, value) in json.load(meta_file).items():
                 metadata[key] = value
+
+    if 'creators' in metadata:
+        metadata['authors'] = ';'.join([creator['name']
+                                        for creator in metadata['creators']])
     if 'title' in args.__dict__ and args.title:
         metadata['title'] = args.title
     if 'date' in args.__dict__ and args.date:
@@ -262,18 +267,22 @@ def updateMetadata(args, metadata):
                                        for community in comm.read().splitlines()]
     if 'authordata' in args.__dict__ and args.authordata:
         with open(args.authordata) as author_data_fp:
-            metadata['creators'] = []
             for author_data in author_data_fp.read().splitlines():
                 if author_data.strip():
                     creator = author_data.split('\t')
-                    metadata['creators'].append({
+                    author_data_dict['name'] = {
                         'name': creator[0],
                         'affiliation': creator[1],
                         'orcid': creator[2]
-                    })
+                    }
     if 'authors' in args.__dict__ and args.authors:
-        metadata['creators'] = [{'name': author}
-                                for author in args.authors.split(';')]
+        metadata['creators'] = []
+        for author in args.authors.split(';'):
+            author_info = author_data_dict.get(author, None)
+            metadata['creators'].append({
+                'name': author,
+                'affiliation': author_info['affiliation'] if author_info else '',
+                'orcid': author_info['orcid'] if author_info else ''})
 
     if 'zotero_link' in args.__dict__ and args.zotero_link:
         metadata['related_identifiers'] = [
