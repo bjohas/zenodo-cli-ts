@@ -1,17 +1,15 @@
 #!/usr/bin/env node
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
-import * as requests from 'requests';
-import * as sys from 'sys';
-import * as re from 're';
-import * as webbrowser from 'webbrowser';
-import * as json from 'json';
-import * as argparse from 'argparse';
-import * as pprint from 'pprint';
-import {Path} from 'pathlib';
-import * as os from 'os';
-*/
+exports.__esModule = true;
+var requests = require("requests");
+var sys = require("sys");
+var re = require("re");
+var webbrowser = require("webbrowser");
+var json = require("json");
+var argparse = require("argparse");
+var pprint = require("pprint");
+var pathlib_1 = require("pathlib");
+//import * as os from 'os';
 require('dotenv').config();
 require('docstring');
 var os = require('os');
@@ -43,11 +41,11 @@ params = {};
 ZENODO_API_URL = "";
 function loadConfig(configFile) {
     var config;
-    if (new Path(configFile).is_file()) {
+    if (new pathlib_1.Path(configFile).is_file()) {
         configFile = configFile;
     }
     else {
-        if (new Path(FALLBACK_CONFIG_FILE).is_file()) {
+        if (new pathlib_1.Path(FALLBACK_CONFIG_FILE).is_file()) {
             configFile = FALLBACK_CONFIG_FILE;
         }
         else {
