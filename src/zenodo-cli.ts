@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/*
 import * as requests from 'requests';
 import * as sys from 'sys';
 import * as re from 're';
@@ -8,19 +7,23 @@ import * as json from 'json';
 import * as argparse from 'argparse';
 import * as pprint from 'pprint';
 import {Path} from 'pathlib';
-import * as os from 'os';
-*/
+//import * as os from 'os';
+
 require('dotenv').config()
 require('docstring')
 const os = require('os')
 
-//import { ArgumentParser } from 'argparse'
-//import { parse as TOML } from '@iarna/toml'
-//import fs = require('fs')
-//import path = require('path')
+import { ArgumentParser } from 'argparse'
+import { parse as TOML } from '@iarna/toml'
+import fs = require('fs')
+import path = require('path')
 
-import request = require('request-promise')
+import request = require('request-promise-native')
 import * as LinkHeader from 'http-link-header'
+
+// String.format doesn't work
+// Need to find package? Need to rewrite?
+// import { String, StringBuilder } from 'typescript-string-operations';
 
 
 var _pj;
