@@ -2,7 +2,8 @@
 import * as requests from 'requests';
 import * as sys from 'sys';
 import * as re from 're';
-import * as webbrowser from 'webbrowser';
+//import * as webbrowser from 'webbrowser';
+const open = require('open');
 import * as json from 'json';
 import * as argparse from 'argparse';
 import * as pprint from 'pprint';
@@ -12,6 +13,19 @@ import {Path} from 'pathlib';
 require('dotenv').config()
 require('docstring')
 const os = require('os')
+var opn = require('opn');
+
+
+/*
+# all functions:
+import * as requests from 'requests';
+
+# packages as a template:
+import { ArgumentParser } from 'argparse'
+
+const os = require('os')
+import fs = require('fs')
+*/
 
 import { ArgumentParser } from 'argparse'
 import { parse as TOML } from '@iarna/toml'
@@ -21,6 +35,8 @@ import path = require('path')
 import request = require('request-promise-native')
 import * as LinkHeader from 'http-link-header'
 
+import './string.extensions'
+
 // String.format doesn't work
 // Need to find package? Need to rewrite?
 // import { String, StringBuilder } from 'typescript-string-operations';
@@ -28,6 +44,7 @@ import * as LinkHeader from 'http-link-header'
 
 var _pj;
 var FALLBACK_CONFIG_FILE, ZENODO_API_URL, args, params, parser, parser_concept, parser_copy, parser_create, parser_download, parser_duplicate, parser_get, parser_list, parser_newversion, parser_update, parser_upload, subparsers;
+
 function _pj_snippets(container) {
     function in_es6(left, right) {
         if (((right instanceof Array) || ((typeof right) === "string"))) {
@@ -43,13 +60,27 @@ function _pj_snippets(container) {
     container["in_es6"] = in_es6;
     return container;
 }
+
 _pj = {};
 _pj_snippets(_pj);
+
 params = {};
 ZENODO_API_URL = "";
-FALLBACK_CONFIG_FILE = (os.environ["HOME"] + "/.config/zenodo-cli/config.json");
+FALLBACK_CONFIG_FILE = (process.env.HOME + "/.config/zenodo-cli/config.json");
 params = {};
 ZENODO_API_URL = "";
+
+/*
+String.format = function() {
+  var s = arguments[0];
+  for (var i = 0; i < arguments.length - 1; i++) {       
+    var reg = new RegExp("\\{\\}", "gm");             
+    s = s.replace(reg, arguments[i + 1]);
+  }
+  return s;
+}*/
+
+
 function loadConfig(configFile) {
     var config;
     if (new Path(configFile).is_file()) {
@@ -283,13 +314,13 @@ function updateMetadata(args, metadata) {
 //metadata[key] = value  
         meta_file.close();
     }
-    if (_pj.in_es6("creators", metadata)) {
-        metadata["authors"] = ";".join(function () {
-    var _pj_a = [], _pj_b = metadata["creators"];
-    for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+  if (_pj.in_es6("creators", metadata)) {
+    metadata["authors"] = ";".join(function () {
+      var _pj_a = [], _pj_b = metadata["creators"];
+      for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
         var creator = _pj_b[_pj_c];
         _pj_a.push(creator["name"]);
-    }
+      }
     return _pj_a;
 }
 .call(this));
@@ -388,7 +419,8 @@ function finalActions(args, id, deposit_url) {
         dumpDeposition(id);
     }
     if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-        webbrowser.open_new_tab(deposit_url);
+      //webbrowser.open_new_tab(deposit_url);
+      opn(deposit_url);
     }
 }
 function create(args) {
@@ -437,7 +469,7 @@ function listDepositions(args) {
             showDepositionJSON(dep);
         }
         if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-            webbrowser.open_new_tab(dep["links"]["html"]);
+            opn(dep["links"]["html"]);
         }
     }
 }
@@ -506,10 +538,11 @@ function concept(args) {
             showDepositionJSON(dep);
         }
         if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-            webbrowser.open_new_tab(dep["links"]["html"]);
+            opn(dep["links"]["html"]);
         }
     }
 }
+
 parser = new argparse.ArgumentParser({"description": "Zenodo command line utility"});
 parser.add_argument("--config", {"action": "store", "default": "config.json", "help": "Config file with API key. By default config.json then ~/.config/zenodo-cli/config.json are used if no config is provided."});
 subparsers = parser.add_subparsers({"help": "sub-command help"});
@@ -607,7 +640,7 @@ parser_concept.add_argument("--open", {"action": "store_true", "help": "Open the
 parser_concept.add_argument("--show", {"action": "store_true", "help": "Show the info of the deposition after executing the command.", "default": false});
 parser_concept.set_defaults({"func": concept});
 args = parser.parse_args();
-if ((sys.argv.length === 1)) {
+if ((process.argv.length === 1)) {
     parser.print_help(sys.stderr);
     sys.exit(1);
 }
