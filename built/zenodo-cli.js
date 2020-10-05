@@ -4,7 +4,8 @@ exports.__esModule = true;
 var requests = require("requests");
 var sys = require("sys");
 var re = require("re");
-var webbrowser = require("webbrowser");
+//import * as webbrowser from 'webbrowser';
+var open = require('open');
 var json = require("json");
 var argparse = require("argparse");
 var pprint = require("pprint");
@@ -13,6 +14,11 @@ var pathlib_1 = require("pathlib");
 require('dotenv').config();
 require('docstring');
 var os = require('os');
+var opn = require('opn');
+require("./string.extensions");
+// String.format doesn't work
+// Need to find package? Need to rewrite?
+// import { String, StringBuilder } from 'typescript-string-operations';
 var _pj;
 var FALLBACK_CONFIG_FILE, ZENODO_API_URL, args, params, parser, parser_concept, parser_copy, parser_create, parser_download, parser_duplicate, parser_get, parser_list, parser_newversion, parser_update, parser_upload, subparsers;
 function _pj_snippets(container) {
@@ -36,9 +42,18 @@ _pj = {};
 _pj_snippets(_pj);
 params = {};
 ZENODO_API_URL = "";
-FALLBACK_CONFIG_FILE = (os.environ["HOME"] + "/.config/zenodo-cli/config.json");
+FALLBACK_CONFIG_FILE = (process.env.HOME + "/.config/zenodo-cli/config.json");
 params = {};
 ZENODO_API_URL = "";
+/*
+String.format = function() {
+  var s = arguments[0];
+  for (var i = 0; i < arguments.length - 1; i++) {
+    var reg = new RegExp("\\{\\}", "gm");
+    s = s.replace(reg, arguments[i + 1]);
+  }
+  return s;
+}*/
 function loadConfig(configFile) {
     var config;
     if (new pathlib_1.Path(configFile).is_file()) {
@@ -390,7 +405,8 @@ function finalActions(args, id, deposit_url) {
         dumpDeposition(id);
     }
     if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-        webbrowser.open_new_tab(deposit_url);
+        //webbrowser.open_new_tab(deposit_url);
+        opn(deposit_url);
     }
 }
 function create(args) {
@@ -439,7 +455,7 @@ function listDepositions(args) {
             showDepositionJSON(dep);
         }
         if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-            webbrowser.open_new_tab(dep["links"]["html"]);
+            opn(dep["links"]["html"]);
         }
     }
 }
@@ -508,7 +524,7 @@ function concept(args) {
             showDepositionJSON(dep);
         }
         if ((_pj.in_es6("open", args.__dict__) && args.open)) {
-            webbrowser.open_new_tab(dep["links"]["html"]);
+            opn(dep["links"]["html"]);
         }
     }
 }
@@ -609,7 +625,7 @@ parser_concept.add_argument("--open", { "action": "store_true", "help": "Open th
 parser_concept.add_argument("--show", { "action": "store_true", "help": "Show the info of the deposition after executing the command.", "default": false });
 parser_concept.set_defaults({ "func": concept });
 args = parser.parse_args();
-if ((sys.argv.length === 1)) {
+if ((process.argv.length === 1)) {
     parser.print_help(sys.stderr);
     sys.exit(1);
 }

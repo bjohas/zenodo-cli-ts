@@ -301,15 +301,12 @@ function updateMetadata(args, metadata) {
         meta_file.close();
     }
     if (_pj.in_es6("creators", metadata)) {
-        metadata["authors"] = ";".join(function () {
-            var _pj_a = [], _pj_b = metadata["creators"];
-            for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
-                var creator = _pj_b[_pj_c];
-                _pj_a.push(creator["name"]);
-            }
-            return _pj_a;
+        var _pj_auth = [], _pj_b = metadata["creators"];
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var creator = _pj_b[_pj_c];
+            _pj_auth.push(creator["name"]);
         }
-            .call(this));
+        metadata["authors"] = _pj_auth.join(";");
     }
     if ((_pj.in_es6("title", args.__dict__) && args.title)) {
         metadata["title"] = args.title;
@@ -321,20 +318,22 @@ function updateMetadata(args, metadata) {
         metadata["description"] = args.description;
     }
     if ((_pj.in_es6("add_communites", args.__dict__) && args.add_communites)) {
-        metadata["communities"] = function () {
-            var _pj_a = [], _pj_b = args.add_communities;
-            for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
-                var community = _pj_b[_pj_c];
-                _pj_a.push({ "identifier": community });
-            }
-            return _pj_a;
+        var _pj_com = [], _pj_b = args.add_communities;
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var community = _pj_b[_pj_c];
+            _pj_com.push({ "identifier": community });
         }
-            .call(this);
+        metadata["communities"] = _pj_com;
     }
     if ((_pj.in_es6("remove_communities", args.__dict__) && args.remove_communities)) {
-        metadata["communities"] = list(filter(function (comm) {
-            return (!_pj.in_es6(comm["identifier"], args.remove_communities));
-        }, metadata["communities"]));
+        var _pj_rrcom = [], _pj_b = metadata["communities"];
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var community = _pj_b[_pj_c];
+            if (!_pj.in_es6(community, args.remove_communities)) {
+                _pj_rrcom.push({ "identifier": community });
+            }
+        }
+        metadata["communities"] = _pj_rrcom;
     }
     if ((_pj.in_es6("communities", args.__dict__) && args.communities)) {
         comm = open(args.communities);
