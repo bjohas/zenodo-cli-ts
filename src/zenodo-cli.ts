@@ -67,8 +67,6 @@ _pj_snippets(_pj);
 params = {};
 ZENODO_API_URL = "";
 FALLBACK_CONFIG_FILE = (process.env.HOME + "/.config/zenodo-cli/config.json");
-params = {};
-ZENODO_API_URL = "";
 
 /*
 String.format = function() {
@@ -82,20 +80,23 @@ String.format = function() {
 
 
 function loadConfig(configFile) {
-    var config;
-    if (new Path(configFile).is_file()) {
+    if (fs.statSync(configFile).isFile()) {
         configFile = configFile;
     } else {
-        if (new Path(FALLBACK_CONFIG_FILE).is_file()) {
+        if (fs.statSync(FALLBACK_CONFIG_FILE).isFile()) {
             configFile = FALLBACK_CONFIG_FILE;
         } else {
             console.log("Config file not present at {} or {}".format("config.json", FALLBACK_CONFIG_FILE));
             sys.exit(1);
         }
     }
-    config = json.load(open(configFile));
-    params = {"access_token": config.get("accessToken")};
-    if ((config.get("env") === "sandbox")) {
+
+    var content = fs.readFileSync(configFile, "utf8");
+    var config = JSON.parse(content);
+
+    params = {"access_token": config["accessToken"]};
+
+    if ((config["env"] === "sandbox")) {
         ZENODO_API_URL = "https://sandbox.zenodo.org/api/deposit/depositions";
     } else {
         ZENODO_API_URL = "https://zenodo.org/api/deposit/depositions";
@@ -653,6 +654,9 @@ if ((process.argv.length === 1)) {
     sys.exit(1);
 }
 loadConfig(args.config);
+
+console.log(args);
+
 args.func(args);
 
 //# sourceMappingURL=zenodo-cli-2.js.map
