@@ -4,6 +4,12 @@ A commandline tool to interact with the Zenodo API. Developed by [@bjohas](https
 
 The main script is zenodo-cli.ts/.js
 
+# Installation
+
+```
+npm install
+```
+
 # Running
 
 ```
