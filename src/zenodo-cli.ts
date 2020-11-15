@@ -57,7 +57,7 @@ function _pj_snippets(container) {
             if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {
                 return right.has(left);
             } else {
-                console.log(right);
+                // console.log(right);
                 return (left in right);
             }
         }
@@ -118,20 +118,6 @@ function parseId(id) {
         // Error
         return undefined;
     }
-    var dot_split, slash_split;
-    if (id.toString().isnumeric()) { // .match(/^(\d+)$/)
-        return id;
-    }
-    slash_split = id.toString().split("/").slice((- 1))[0];
-    if (slash_split.isnumeric()) {
-        id = slash_split;
-    } else {
-        dot_split = id.toString().split(".").slice((- 1))[0];
-        if (dot_split.isnumeric()) {
-            id = dot_split;
-        }
-    }
-    return id;
 }
 function publishDeposition(id) {
     var res;
@@ -144,44 +130,45 @@ function publishDeposition(id) {
     }
 }
 function getData(id) {
+    console.log("getData");
     var listParams, myres, res;
     id = parseId(id);
-    var res = sync_request('GET', "{0}/{1}".format(ZENODO_API_URL, id), {qs: params});
-
-    if ((res.statusCode !== 200)) {
-
-        console.log("JSON");
-        console.log(res.content);
-        myres = JSON.parse(res.content);
-
-        if ((myres["status"] !== 404)) {
-            console.log("Error in getting data: {}".format(json.loads(res.content)));
-            sys.exit(1);
-        } else {
-            console.log("Checking concept ID.");
-            listParams = params;
-            listParams["q"] = ("conceptrecid:" + id);
-            res = requests.get(ZENODO_API_URL, {"params": listParams});
-            if ((res.status_code !== 200)) {
-                console.log("Failed in getting data: {}".format(json.loads(res.content)));
-            } else {
-                console.log(("Found record ID: " + res.json()[0]["id"].toString()));
-                return res.json()[0];
-            }
-        }
+    var res = sync_request('GET', "{}/{}".format(ZENODO_API_URL, id), {qs: params});
+    // console.log(res);
+    if ((res.statusCode === 404)) {
+      // console.log("Checking concept ID.");
+      listParams = params;
+      listParams["q"] = ("conceptrecid:" + id);
+      //res = requests.get(ZENODO_API_URL, {"params": listParams});
+      res = sync_request('GET', "{}".format(ZENODO_API_URL, id), {qs: listParams});
+      if ((res.statusCode !== 200)) {
+        console.log("Failed in getting data after conceptid: {}".format(json.loads(res.content)));
+	sys.exit(1);
+      } else {
+	console.log("ConceptID -> RecordID: " + JSON.parse(res.getBody('utf8'))[0]["id"]);
+	return JSON.parse(res.getBody('utf8'))[0];
+      }
+    } else if ((res.statusCode !== 200)) {
+      console.log("getData-Error");
+      // console.log(res);
+      // console.log(res.body);
+      console.log("Error in getting data: {}".format(json.loads(res.content)));
+      sys.exit(1);
     } else {
-        return JSON.parse(res.getBody('utf8'))[0];
-    }
+      return JSON.parse(res.getBody('utf8'))[0];
+    };
 }
 function showDepositionJSON(info) {
+    console.log("showDepositionJSON");
     console.log("Title: {}".format(info["title"]));
+    console.log("showDepositionJSON--");
     if (_pj.in_es6("publication_date", info["metadata"])) {
-        console.log("Date: {}".format(info["metadata"]["publication_date"]));
+      console.log("Date: {}".format(info["metadata"]["publication_date"]));
     } else {
         console.log("Date: N/A");
     }
     console.log("RecordId: {}".format(info["id"]));
-    if (_pj.in_es6("conceptrecid", info.keys())) {
+    if (_pj.in_es6("conceptrecid", Object.keys(info))) {
         console.log("ConceptId: {}".format(info["conceptrecid"]));
     } else {
         console.log("ConceptId: N/A");
@@ -190,7 +177,7 @@ function showDepositionJSON(info) {
     console.log("Published: {}".format((info["submitted"] ? "yes" : "no")));
     console.log("State: {}".format(info["state"]));
     console.log("URL: https://zenodo.org/{}/{}".format((info["submitted"] ? "record" : "deposit"), info["id"]));
-    if (_pj.in_es6("bucket", info["links"].keys())) {
+    if (_pj.in_es6("bucket", Object.keys(info["links"]))) {
         console.log("BucketURL: {}".format(info["links"]["bucket"]));
     } else {
         console.log("BucketURL: N/A");
@@ -219,25 +206,20 @@ function getMetadata(id) {
     return getData(id)["metadata"];
 }
 function parseIds(genericIds) {
-    return function () {
-    var _pj_a = [], _pj_b = genericIds;
-    for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
-        var id = _pj_b[_pj_c];
-        _pj_a.push(parseId(id));
-    }
-    return _pj_a;
-}
-.call(this);
+    var result = [];
+    genericIds.forEach(function(id) {
+      result.push(parseId(id))
+    });
+    return result;
 }
 function saveIdsToJson(args) {
     var data, f, ids;
     ids = parseIds(args.id);
-    for (var id, _pj_c = 0, _pj_a = ids, _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {
-        id = _pj_a[_pj_c];
-        data = getData(id);
-        fs.writeFileSync(path.resolve(__dirname, "{}.json".format(id)), JSON.stringify(data["metadata"]));
-        finalActions(args, id, data["links"]["html"]);
-    }
+    ids.forEach(function(id) {
+      data = getData(id);
+      fs.writeFileSync("{}.json".format(id), JSON.stringify(data["metadata"]));
+      finalActions(args, id, data["links"]["html"]);
+    });
 }
 function createRecord(metadata) {
     var res, response_data;
