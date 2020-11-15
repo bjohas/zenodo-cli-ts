@@ -307,26 +307,24 @@ function upload(args) {
     }
 }
 function updateMetadata(args, metadata) {
+    // ISSUE - this function needs reviewing
     var author_data_dict, author_data_fp, author_info, comm, creator, meta_file;
     author_data_dict = {};
-    if ((_pj.in_es6("json", args.__dict__) && args.json)) {
-      meta_file = open(args.json);
-//for (key, value) in json.load(meta_file).items():                                                                                                                   
-//metadata[key] = value  
-        meta_file.close();
+    if ((_pj.in_es6("json", args) && args.json)) {
+      // Fully replace metadata by file:
+      var metadata = JSON.parse(fs.readFileSync(args.json, 'utf8'));
+      // Previously we copied args.json onto metadata key by key:
+      //for (key, value) in metafile:                                                                                                                   
+      //    metadata[key] = value  
     }
     if (_pj.in_es6("creators", metadata)) {
-
       var _pj_auth = [], _pj_b = metadata["creators"];
       for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
         var creator = _pj_b[_pj_c];
         _pj_auth.push(creator["name"]);
       }
-
       metadata["authors"] = _pj_auth.join(";");
-
     }
-
     if ((_pj.in_es6("title", args.__dict__) && args.title)) {
         metadata["title"] = args.title;
     }
@@ -436,9 +434,8 @@ function finalActions(args, id, deposit_url) {
 }
 function create(args) {
     var f, metadata, response_data;
-    f = open("blank.json", {"mode": "r"});
-    metadata = json.loads(f.read());
-    f.close();
+    // ISSUE: blank.json may not be present in current directory. Need to provide this differently.
+    metadata = JSON.parse(fs.readFileSync('blank.json', 'utf8'));
     metadata = updateMetadata(args, metadata);
     response_data = createRecord(metadata);
     finalActions(args, response_data["id"], response_data["links"]["html"]);
