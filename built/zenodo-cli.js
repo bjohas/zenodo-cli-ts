@@ -9,12 +9,12 @@ var open = require('open');
 var json = require("json");
 var argparse = require("argparse");
 var pprint = require("pprint");
-var pathlib_1 = require("pathlib");
 //import * as os from 'os';
 require('dotenv').config();
 require('docstring');
 var os = require('os');
 var opn = require('opn');
+var fs = require("fs");
 require("./string.extensions");
 // String.format doesn't work
 // Need to find package? Need to rewrite?
@@ -43,8 +43,6 @@ _pj_snippets(_pj);
 params = {};
 ZENODO_API_URL = "";
 FALLBACK_CONFIG_FILE = (process.env.HOME + "/.config/zenodo-cli/config.json");
-params = {};
-ZENODO_API_URL = "";
 /*
 String.format = function() {
   var s = arguments[0];
@@ -55,12 +53,11 @@ String.format = function() {
   return s;
 }*/
 function loadConfig(configFile) {
-    var config;
-    if (new pathlib_1.Path(configFile).is_file()) {
+    if (fs.statSync(configFile).isFile()) {
         configFile = configFile;
     }
     else {
-        if (new pathlib_1.Path(FALLBACK_CONFIG_FILE).is_file()) {
+        if (fs.statSync(FALLBACK_CONFIG_FILE).isFile()) {
             configFile = FALLBACK_CONFIG_FILE;
         }
         else {
@@ -68,9 +65,10 @@ function loadConfig(configFile) {
             sys.exit(1);
         }
     }
-    config = json.load(open(configFile));
-    params = { "access_token": config.get("accessToken") };
-    if ((config.get("env") === "sandbox")) {
+    var content = fs.readFileSync(configFile, "utf8");
+    var config = JSON.parse(content);
+    params = { "access_token": config["accessToken"] };
+    if ((config["env"] === "sandbox")) {
         ZENODO_API_URL = "https://sandbox.zenodo.org/api/deposit/depositions";
     }
     else {
@@ -301,15 +299,12 @@ function updateMetadata(args, metadata) {
         meta_file.close();
     }
     if (_pj.in_es6("creators", metadata)) {
-        metadata["authors"] = ";".join(function () {
-            var _pj_a = [], _pj_b = metadata["creators"];
-            for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
-                var creator = _pj_b[_pj_c];
-                _pj_a.push(creator["name"]);
-            }
-            return _pj_a;
+        var _pj_auth = [], _pj_b = metadata["creators"];
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var creator = _pj_b[_pj_c];
+            _pj_auth.push(creator["name"]);
         }
-            .call(this));
+        metadata["authors"] = _pj_auth.join(";");
     }
     if ((_pj.in_es6("title", args.__dict__) && args.title)) {
         metadata["title"] = args.title;
@@ -321,20 +316,22 @@ function updateMetadata(args, metadata) {
         metadata["description"] = args.description;
     }
     if ((_pj.in_es6("add_communites", args.__dict__) && args.add_communites)) {
-        metadata["communities"] = function () {
-            var _pj_a = [], _pj_b = args.add_communities;
-            for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
-                var community = _pj_b[_pj_c];
-                _pj_a.push({ "identifier": community });
-            }
-            return _pj_a;
+        var _pj_com = [], _pj_b = args.add_communities;
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var community = _pj_b[_pj_c];
+            _pj_com.push({ "identifier": community });
         }
-            .call(this);
+        metadata["communities"] = _pj_com;
     }
     if ((_pj.in_es6("remove_communities", args.__dict__) && args.remove_communities)) {
-        metadata["communities"] = list(filter(function (comm) {
-            return (!_pj.in_es6(comm["identifier"], args.remove_communities));
-        }, metadata["communities"]));
+        var _pj_rrcom = [], _pj_b = metadata["communities"];
+        for (var _pj_c = 0, _pj_d = _pj_b.length; (_pj_c < _pj_d); _pj_c += 1) {
+            var community = _pj_b[_pj_c];
+            if (!_pj.in_es6(community, args.remove_communities)) {
+                _pj_rrcom.push({ "identifier": community });
+            }
+        }
+        metadata["communities"] = _pj_rrcom;
     }
     if ((_pj.in_es6("communities", args.__dict__) && args.communities)) {
         comm = open(args.communities);
@@ -630,5 +627,6 @@ if ((process.argv.length === 1)) {
     sys.exit(1);
 }
 loadConfig(args.config);
+console.log(args);
 args.func(args);
 //# sourceMappingURL=zenodo-cli-2.js.map

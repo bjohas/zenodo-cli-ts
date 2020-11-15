@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-import * as requests from 'requests';
+import * as requests from 'requests';// import request = require('request')
+
+var sync_request = require('sync-request');
+
+
 import * as sys from 'sys';
 import * as re from 're';
 //import * as webbrowser from 'webbrowser';
@@ -53,6 +57,7 @@ function _pj_snippets(container) {
             if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {
                 return right.has(left);
             } else {
+                console.log(right);
                 return (left in right);
             }
         }
@@ -103,8 +108,18 @@ function loadConfig(configFile) {
     }
 }
 function parseId(id) {
+    // 123123213 -> id
+    // zenodo.org/..../deposite...../123213123 -> 123213123
+    // 10...../zenodo.123 -> 123
+    const idNumber = id.toString().match(/(\d+)$/)
+    if (idNumber) {
+        return idNumber[1]
+    } else {
+        // Error
+        return undefined;
+    }
     var dot_split, slash_split;
-    if (id.toString().isnumeric()) {
+    if (id.toString().isnumeric()) { // .match(/^(\d+)$/)
         return id;
     }
     slash_split = id.toString().split("/").slice((- 1))[0];
@@ -131,9 +146,14 @@ function publishDeposition(id) {
 function getData(id) {
     var listParams, myres, res;
     id = parseId(id);
-    res = requests.get("{}/{}".format(ZENODO_API_URL, id), {"params": params});
-    if ((res.status_code !== 200)) {
-        myres = json.loads(res.content);
+    var res = sync_request('GET', "{0}/{1}".format(ZENODO_API_URL, id), {qs: params});
+
+    if ((res.statusCode !== 200)) {
+
+        console.log("JSON");
+        console.log(res.content);
+        myres = JSON.parse(res.content);
+
         if ((myres["status"] !== 404)) {
             console.log("Error in getting data: {}".format(json.loads(res.content)));
             sys.exit(1);
@@ -150,7 +170,7 @@ function getData(id) {
             }
         }
     } else {
-        return res.json();
+        return JSON.parse(res.getBody('utf8'))[0];
     }
 }
 function showDepositionJSON(info) {
@@ -214,10 +234,8 @@ function saveIdsToJson(args) {
     ids = parseIds(args.id);
     for (var id, _pj_c = 0, _pj_a = ids, _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {
         id = _pj_a[_pj_c];
-        f = open("{}.json".format(id), "w");
         data = getData(id);
-        json.dump(data["metadata"], f);
-        f.close();
+        fs.writeFileSync(path.resolve(__dirname, "{}.json".format(id)), JSON.stringify(data["metadata"]));
         finalActions(args, id, data["links"]["html"]);
     }
 }
@@ -418,16 +436,18 @@ function update(args) {
     finalActions(args, id, deposit_url);
 }
 function finalActions(args, id, deposit_url) {
-    if ((_pj.in_es6("publish", args.__dict__) && args.publish)) {
+    var keys = Object.keys(args);
+
+    if ((_pj.in_es6("publish", keys) && args.publish)) {
         publishDeposition(id);
     }
-    if ((_pj.in_es6("show", args.__dict__) && args.show)) {
+    if ((_pj.in_es6("show", keys) && args.show)) {
         showDeposition(id);
     }
-    if ((_pj.in_es6("dump", args.__dict__) && args.dump)) {
+    if ((_pj.in_es6("dump", keys) && args.dump)) {
         dumpDeposition(id);
     }
-    if ((_pj.in_es6("open", args.__dict__) && args.open)) {
+    if ((_pj.in_es6("open", keys) && args.open)) {
       //webbrowser.open_new_tab(deposit_url);
       opn(deposit_url);
     }
