@@ -122,8 +122,8 @@ function parseId(id) {
 function publishDeposition(id) {
     var res;
     id = parseId(id);
-    res = requests.post("{}/{}/actions/publish".format(ZENODO_API_URL, id), {"params": params});
-    if ((res.status_code !== 202)) {
+    res = sync_request('POST', "{}/{}/actions/publish".format(ZENODO_API_URL, id), {"qs": params});
+    if ((res.statusCode !== 202)) {
         console.log("Error in publshing deposition {}: {}".format(id, json.loads(res.content)));
     } else {
         console.log("\tDeposition {} successfully published.".format(id));
@@ -224,8 +224,8 @@ function saveIdsToJson(args) {
 function createRecord(metadata) {
     var res, response_data;
     console.log("\tCreating record.");
-    res = requests.post(ZENODO_API_URL, {"json": {"metadata": metadata}, "params": params});
-    if ((res.status_code !== 201)) {
+    res = sync_request('POST', ZENODO_API_URL, {"json": {"metadata": metadata}, "qs": params});
+    if ((res.statusCode !== 201)) {
         console.log("Error in creating new record: {}".format(json.loads(res.content)));
         sys.exit(1);
     }
@@ -235,8 +235,8 @@ function createRecord(metadata) {
 function editDeposit(dep_id) {
     var res, response_data;
     dep_id = parseId(dep_id);
-    res = requests.post("{}/{}/actions/edit".format(ZENODO_API_URL, dep_id), {"params": params});
-    if ((res.status_code !== 201)) {
+    res = sync_request('POST', "{}/{}/actions/edit".format(ZENODO_API_URL, dep_id), {"qs": params});
+    if ((res.statusCode !== 201)) {
         console.log("Error in making record editable. {}".format(json.loads(res.content)));
         sys.exit(1);
     }
@@ -247,8 +247,8 @@ function updateRecord(dep_id, metadata) {
     var res, response_data;
     console.log("\tUpdating record.");
     dep_id = parseId(dep_id);
-    res = requests.put(((ZENODO_API_URL + "/") + dep_id), {"json": {"metadata": metadata}, "params": params});
-    if ((res.status_code !== 200)) {
+    res = sync_request('PUT', ((ZENODO_API_URL + "/") + dep_id), {"json": {"metadata": metadata}, "qs": params});
+    if ((res.statusCode !== 200)) {
         console.log("Error in updating record. {}".format(json.loads(res.content)));
         sys.exit(1);
     }
@@ -260,9 +260,9 @@ function fileUpload(bucket_url, journal_filepath) {
     console.log("\tUploading file.");
     fp = open(journal_filepath, "rb");
     replaced = re.sub("^.*\\/", "", journal_filepath);
-    res = requests.put(((bucket_url + "/") + replaced), {"data": fp, "params": params});
+    res = sync_request('PUT', ( (bucket_url + "/") + replaced), {"data": fp, "qs": params});
     fp.close;
-    if ((res.status_code !== 200)) {
+    if ((res.statusCode !== 200)) {
         sys.exit(json.dumps(res.json()));
     }
     console.log("\tUpload successful.");
@@ -462,8 +462,8 @@ function listDepositions(args) {
     listParams = params;
     listParams["page"] = args.page;
     listParams["size"] = (args.size ? args.size : 1000);
-    res = requests.get(ZENODO_API_URL, {"params": listParams});
-    if ((res.status_code !== 200)) {
+    res = sync_request('GET', ZENODO_API_URL, {"qs": listParams});
+    if ((res.statusCode !== 200)) {
         console.log("Failed in listDepositions: {}".format(json.loads(res.content)));
         sys.exit(1);
     }
@@ -487,7 +487,7 @@ function listDepositions(args) {
 function newVersion(args) {
     var bucket_url, deposit_url, id, metadata, newmetadata, response, response_data;
     id = parseId(args.id[0]);
-    response = requests.post("{}/{}/actions/newversion".format(ZENODO_API_URL, id), {"params": params});
+    response = sync_request('POST', "{}/{}/actions/newversion".format(ZENODO_API_URL, id), {"qs": params});
     if ((response.status_code !== 201)) {
         console.log("New version request failed: {}".format(json.loads(response.content)));
         sys.exit(1);
@@ -517,7 +517,7 @@ function download(args) {
         fileObj = _pj_a[_pj_c];
         name = fileObj["filename"];
         console.log(`Downloading ${name}`);
-        contents = requests.get(fileObj["links"]["download"], {"params": params});
+        contents = sync_request('GET', fileObj["links"]["download"], {"qs": params});
         fp = open(name, "wb+");
         fp.write(contents.content);
         fp.close();
@@ -531,8 +531,8 @@ function concept(args) {
     id = parseId(args.id[0]);
     listParams = params;
     listParams["q"] = ("conceptrecid:" + id);
-    res = requests.get(ZENODO_API_URL, {"params": listParams});
-    if ((res.status_code !== 200)) {
+    res = sync_request('GET', ZENODO_API_URL, {"qs": listParams});
+    if ((res.statusCode !== 200)) {
         console.log("Failed in concept(args): {}".format(json.loads(res.content)));
         sys.exit(1);
     }
