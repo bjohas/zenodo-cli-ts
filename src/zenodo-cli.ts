@@ -312,7 +312,7 @@ function updateMetadata(args, metadata) {
     author_data_dict = {};
     if ((_pj.in_es6("json", args) && args.json)) {
       // Fully replace metadata by file:
-      var metadata = JSON.parse(fs.readFileSync(args.json, 'utf8'));
+      metadata = JSON.parse(fs.readFileSync(args.json, 'utf8'));
       // Previously we copied args.json onto metadata key by key:
       //for (key, value) in metafile:                                                                                                                   
       //    metadata[key] = value  
